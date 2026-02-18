@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback } from 'react'
+import type { ReactNode } from 'react'
 
 export type Locale = 'lv' | 'en'
 
@@ -27,6 +28,10 @@ const translations = {
         'chat.starter_2': 'Kādi dokumenti ir augšupielādēti?',
         'chat.starter_3': 'Apkopojiet galvenos punktus no pēdējā ziņojuma',
         'chat.starter_4': 'Kādi ir budžeta prioritātes šim gadam?',
+        'chat.new_chat': 'Jauna saruna',
+        'chat.clear': 'Notīrīt',
+        'chat.try_asking': 'Jautājiet',
+        'chat.history_saved': 'Vēsture saglabāta lokāli',
 
         // Documents
         'docs.title': 'Dokumentu pārvaldība',
@@ -71,6 +76,10 @@ const translations = {
         'chat.starter_2': 'What documents have been uploaded?',
         'chat.starter_3': 'Summarize the main points of the latest report',
         'chat.starter_4': 'What are the budget priorities for this year?',
+        'chat.new_chat': 'New Chat',
+        'chat.clear': 'Clear',
+        'chat.try_asking': 'Try asking',
+        'chat.history_saved': 'History saved locally',
 
         // Documents
         'docs.title': 'Document Management',
