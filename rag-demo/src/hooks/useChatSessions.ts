@@ -18,6 +18,7 @@ export interface ChatSession {
 
 const SESSIONS_KEY = 'rag-chat-sessions'
 const ACTIVE_KEY = 'rag-active-session'
+const MAX_SESSIONS = 50
 
 function loadSessions(): ChatSession[] {
     try {
@@ -30,8 +31,8 @@ function loadSessions(): ChatSession[] {
 }
 
 function saveSessions(sessions: ChatSession[]) {
-    // Keep last 30 sessions to avoid blowing up localStorage
-    const trimmed = sessions.slice(0, 30)
+    // Keep most recent sessions to avoid blowing up localStorage
+    const trimmed = sessions.slice(0, MAX_SESSIONS)
     localStorage.setItem(SESSIONS_KEY, JSON.stringify(trimmed))
 }
 
@@ -108,6 +109,20 @@ export function useChatSessions() {
         [activeSessionId, setActiveSessionId]
     )
 
+    /** Rename a session */
+    const renameSession = useCallback((id: string, newTitle: string) => {
+        const trimmed = newTitle.trim()
+        if (!trimmed) return
+        setSessions((prev) => {
+            const updated = prev.map((s) => {
+                if (s.id !== id) return s
+                return { ...s, title: trimmed, updatedAt: new Date().toISOString() }
+            })
+            saveSessions(updated)
+            return updated
+        })
+    }, [])
+
     /** Append a message to the active session and persist. */
     const addMessage = useCallback(
         (message: Message) => {
@@ -115,10 +130,10 @@ export function useChatSessions() {
                 const updated = prev.map((s) => {
                     if (s.id !== activeSessionId) return s
                     const messages = [...s.messages, message]
-                    // Auto-title from first user message
+                    // Auto-title from first user message (60 chars max)
                     const isFirstUserMsg = s.messages.length === 0 && message.role === 'user'
                     const title = isFirstUserMsg
-                        ? message.content.slice(0, 52) + (message.content.length > 52 ? '…' : '')
+                        ? message.content.slice(0, 60) + (message.content.length > 60 ? '…' : '')
                         : s.title
                     return { ...s, messages, title, updatedAt: new Date().toISOString() }
                 })
@@ -129,7 +144,7 @@ export function useChatSessions() {
         [activeSessionId]
     )
 
-    /** Clear all messages in the active session (keep session entry). */
+    /** Clear all messages in the active session (keep session entry, reset title). */
     const clearSession = useCallback(() => {
         setSessions((prev) => {
             const updated = prev.map((s) => {
@@ -148,6 +163,7 @@ export function useChatSessions() {
         createSession,
         selectSession,
         deleteSession,
+        renameSession,
         addMessage,
         clearSession,
     }
