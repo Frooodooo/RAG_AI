@@ -18,7 +18,7 @@ const translations = {
         // Chat
         'chat.welcome_title': 'Jautājiet jebko',
         'chat.welcome_desc': 'Varu atbildēt uz jautājumiem par jūsu augšupielādētajiem dokumentiem latviešu vai angļu valodā',
-        'chat.placeholder': 'Uzdodiet jautājumu… (Ctrl+Enter lai nosūtītu)',
+        'chat.placeholder': 'Uzdodiet jautājumu… (Enter lai nosūtītu)',
         'chat.send': 'Sūtīt',
         'chat.thinking': 'Domāju',
         'chat.powered_by': 'EuroLLM-9B · Darbojas lokāli jūsu datorā',
@@ -66,13 +66,13 @@ const translations = {
         // Chat
         'chat.welcome_title': 'Ask anything',
         'chat.welcome_desc': 'I can answer questions about your uploaded documents in Latvian or English',
-        'chat.placeholder': 'Ask a question… (Ctrl+Enter to send)',
+        'chat.placeholder': 'Ask a question… (Enter to send)',
         'chat.send': 'Send',
         'chat.thinking': 'Thinking',
         'chat.powered_by': 'EuroLLM-9B · Running locally on your machine',
         'chat.sources_found': (n: number) => `${n} source${n === 1 ? '' : 's'} found`,
         'chat.match': 'match',
-        'chat.starter_1': 'What are Riga\'s city development plans?',
+        'chat.starter_1': "What are Riga's city development plans?",
         'chat.starter_2': 'What documents have been uploaded?',
         'chat.starter_3': 'Summarize the main points of the latest report',
         'chat.starter_4': 'What are the budget priorities for this year?',
@@ -136,11 +136,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     )
 
     return (
-        <LocaleContext.Provider value= {{ locale, setLocale, t }
-}>
-    { children }
-    </LocaleContext.Provider>
-  )
+        <LocaleContext.Provider value={{ locale, setLocale, t }}>
+            {children}
+        </LocaleContext.Provider>
+    )
 }
 
 // ═══════ Hook ═══════
