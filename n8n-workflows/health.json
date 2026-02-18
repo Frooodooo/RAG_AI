@@ -1,0 +1,85 @@
+{
+  "name": "Health Check",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "health",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:11434/api/tags",
+        "options": { "timeout": 5000 }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 200],
+      "name": "Check Ollama",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:6333/collections",
+        "options": { "timeout": 5000 }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 400],
+      "name": "Check Qdrant",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet ollamaStatus = 'error';\nlet qdrantStatus = 'error';\ntry { if (items[0] && items[0].json && items[0].json.models) ollamaStatus = 'ok'; } catch(e) {}\ntry { if (items[1] && items[1].json && items[1].json.status === 'ok') qdrantStatus = 'ok'; } catch(e) {}\nreturn [{ json: { ollama: ollamaStatus, qdrant: qdrantStatus, n8n: 'ok' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "name": "Format Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 300],
+      "name": "Respond"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          { "node": "Check Ollama", "type": "main", "index": 0 },
+          { "node": "Check Qdrant", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Check Ollama": {
+      "main": [
+        [{ "node": "Format Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check Qdrant": {
+      "main": [
+        [{ "node": "Format Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [{ "node": "Respond", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}

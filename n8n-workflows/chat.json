@@ -1,0 +1,125 @@
+{
+    "name": "Chat Agent",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "chat",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                240,
+                300
+            ],
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "jsCode": "const body = $input.first().json.body;\nconst message = body.message || '';\nconst sessionId = body.sessionId || 'default';\nreturn [{ json: { message, sessionId } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                460,
+                300
+            ],
+            "name": "Parse Input"
+        },
+        {
+            "parameters": {
+                "url": "http://host.docker.internal:11434/api/chat",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ model: 'alibayram/erurollm-9b-instruct', messages: [{ role: 'system', content: 'You are a helpful assistant for Riga City Council. Answer questions based on the context provided. You can answer in Latvian or English depending on the language of the question. Be concise but thorough.' }, { role: 'user', content: $json.message }], stream: false }) }}",
+                "options": {
+                    "timeout": 120000
+                }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                680,
+                300
+            ],
+            "name": "Ollama Chat"
+        },
+        {
+            "parameters": {
+                "jsCode": "const response = $input.first().json;\nconst answer = response.message?.content || 'Sorry, I could not generate a response.';\nconst sources = [];\nreturn [{ json: { answer, sources } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                900,
+                300
+            ],
+            "name": "Format Response"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify($json) }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                1120,
+                300
+            ],
+            "name": "Respond"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Input",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Input": {
+            "main": [
+                [
+                    {
+                        "node": "Ollama Chat",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Ollama Chat": {
+            "main": [
+                [
+                    {
+                        "node": "Format Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format Response": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    }
+}

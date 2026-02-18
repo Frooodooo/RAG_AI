@@ -1,0 +1,96 @@
+{
+    "name": "Document Upload",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "upload",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                240,
+                300
+            ],
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "jsCode": "const body = $input.first().json.body;\nconst filename = body.filename || 'unknown';\nconst fileBase64 = body.fileBase64 || '';\nconst mimeType = body.mimeType || 'application/octet-stream';\n\n// Decode base64 to binary\nconst buffer = Buffer.from(fileBase64, 'base64');\n\nreturn [{\n  json: { filename, mimeType, size: buffer.length },\n  binary: {\n    data: {\n      data: fileBase64,\n      mimeType: mimeType,\n      fileName: filename\n    }\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                460,
+                300
+            ],
+            "name": "Decode Base64"
+        },
+        {
+            "parameters": {
+                "jsCode": "const filename = $input.first().json.filename;\nconst size = $input.first().json.size;\nreturn [{ json: {\n  success: true,\n  filename: filename,\n  size: size,\n  message: `File ${filename} received (${size} bytes). Document processing pipeline is being set up.`\n}}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                680,
+                300
+            ],
+            "name": "Process File"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify($json) }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                900,
+                300
+            ],
+            "name": "Respond"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Decode Base64",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Decode Base64": {
+            "main": [
+                [
+                    {
+                        "node": "Process File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Process File": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    }
+}
