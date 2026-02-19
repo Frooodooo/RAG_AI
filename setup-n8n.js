@@ -1,7 +1,28 @@
 const { randomUUID } = require('crypto');
 
 const API_KEY = process.env.N8N_API_KEY;
-const BASE = process.env.N8N_BASE_URL || 'http://localhost:5678/api/v1';
+
+// Security & Configuration
+const N8N_PROTOCOL = process.env.N8N_PROTOCOL || 'http';
+const N8N_HOST = process.env.N8N_HOST || 'localhost';
+const N8N_PORT = process.env.N8N_PORT || '5678';
+const BASE = process.env.N8N_BASE_URL || `${N8N_PROTOCOL}://${N8N_HOST}:${N8N_PORT}/api/v1`;
+
+// Internal service URLs (defaults to host.docker.internal for n8n container access to host services)
+const OLLAMA_URL = process.env.OLLAMA_URL || 'http://host.docker.internal:11434';
+const QDRANT_URL = process.env.QDRANT_URL || 'http://host.docker.internal:6333';
+
+// Webhook URL for testing
+const WEBHOOK_BASE = process.env.N8N_WEBHOOK_URL || `${N8N_PROTOCOL}://${N8N_HOST}:${N8N_PORT}/webhook`;
+
+// Security Check: Enforce HTTPS for non-local connections
+if (N8N_PROTOCOL === 'http') {
+    const isLocal = N8N_HOST === 'localhost' || N8N_HOST === '127.0.0.1' || N8N_HOST === '::1' || N8N_HOST === '[::1]';
+    if (!isLocal) {
+        console.error('Security Error: HTTP allowed only for localhost. Use HTTPS for remote connections.');
+        process.exit(1);
+    }
+}
 
 if (!API_KEY) {
     console.error('Error: N8N_API_KEY environment variable is not set.');
@@ -35,7 +56,7 @@ function makeHealthWorkflow() {
             },
             {
                 parameters: {
-                    url: "http://host.docker.internal:11434/api/tags",
+                    url: `${OLLAMA_URL}/api/tags`,
                     options: { timeout: 5000 }
                 },
                 type: "n8n-nodes-base.httpRequest", typeVersion: 4.2,
@@ -44,7 +65,7 @@ function makeHealthWorkflow() {
             },
             {
                 parameters: {
-                    url: "http://host.docker.internal:6333/collections",
+                    url: `${QDRANT_URL}/collections`,
                     options: { timeout: 5000 }
                 },
                 type: "n8n-nodes-base.httpRequest", typeVersion: 4.2,
@@ -108,7 +129,7 @@ function makeDocumentsWorkflow() {
             },
             {
                 parameters: {
-                    url: "http://host.docker.internal:6333/collections",
+                    url: `${QDRANT_URL}/collections`,
                     options: { timeout: 10000 }
                 },
                 type: "n8n-nodes-base.httpRequest", typeVersion: 4.2,
@@ -166,7 +187,7 @@ function makeChatWorkflow() {
             {
                 parameters: {
                     method: "POST",
-                    url: "http://host.docker.internal:11434/api/chat",
+                    url: `${OLLAMA_URL}/api/chat`,
                     sendBody: true,
                     specifyBody: "json",
                     jsonBody: "={{ JSON.stringify({ model: 'alibayram/erurollm-9b-instruct', messages: [{ role: 'system', content: 'You are a helpful assistant for Riga City Council. Answer in the same language as the question. Be concise but thorough.' }, { role: 'user', content: $json.message }], stream: false }) }}",
@@ -278,7 +299,7 @@ async function main() {
     // Test health
     console.log('\n=== Testing /webhook/health ===');
     try {
-        const r = await fetch('http://localhost:5678/webhook/health', { signal: AbortSignal.timeout(15000) });
+        const r = await fetch(`${WEBHOOK_BASE}/health`, { signal: AbortSignal.timeout(15000) });
         console.log(`Status: ${r.status}`);
         await r.text();
         console.log('Response body received');
@@ -287,7 +308,7 @@ async function main() {
     // Test documents
     console.log('\n=== Testing /webhook/documents ===');
     try {
-        const r = await fetch('http://localhost:5678/webhook/documents', { signal: AbortSignal.timeout(15000) });
+        const r = await fetch(`${WEBHOOK_BASE}/documents`, { signal: AbortSignal.timeout(15000) });
         console.log(`Status: ${r.status}`);
         await r.text();
         console.log('Response body received');
@@ -296,7 +317,7 @@ async function main() {
     // Test upload
     console.log('\n=== Testing /webhook/upload ===');
     try {
-        const r = await fetch('http://localhost:5678/webhook/upload', {
+        const r = await fetch(`${WEBHOOK_BASE}/upload`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ filename: 'test.txt', fileBase64: 'SGVsbG8gV29ybGQ=', mimeType: 'text/plain' }),
@@ -310,7 +331,7 @@ async function main() {
     // Test chat (with short timeout since Ollama may be slow)
     console.log('\n=== Testing /webhook/chat ===');
     try {
-        const r = await fetch('http://localhost:5678/webhook/chat', {
+        const r = await fetch(`${WEBHOOK_BASE}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: 'Hello', sessionId: 'test1' }),
