@@ -178,23 +178,13 @@ function SessionItem({
             {/* Action buttons — shown on hover or if confirming */}
             {!isRenaming && (
                 <div
-                    className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1"
-                    style={{
-                        opacity: deletePhase === 'confirm' ? 1 : 0,
-                        transition: 'opacity 150ms ease',
-                    }}
-                    onMouseEnter={(e) => {
-                        const parent = e.currentTarget.closest('[class*="group"]') as HTMLElement | null
-                        if (!parent) return
-                        // Show actions via CSS group hover via JS
-                        ;(e.currentTarget as HTMLElement).style.opacity = '1'
-                    }}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 transition-opacity duration-150 ease-out ${
+                        deletePhase === 'confirm'
+                            ? 'opacity-100'
+                            : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+                    }`}
                 >
-                    {/* Force show via group hover workaround */}
-                    <style>{`
-                        .group:hover .action-btns, .group:focus-within .action-btns { opacity: 1 !important; }
-                    `}</style>
-                    <div className="action-btns flex items-center gap-1" style={{ opacity: deletePhase === 'confirm' ? 1 : undefined }}>
+                    <div className="action-btns flex items-center gap-1">
                         {deletePhase === 'confirm' ? (
                             <>
                                 {/* Cancel */}
