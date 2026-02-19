@@ -3,6 +3,29 @@ import { format } from 'date-fns'
 import { useLocale } from '../../i18n'
 import { deleteDoc, type ApiDocument } from '../../api'
 
+/** Fetch-based download — catches server errors and surfaces them to the UI
+ *  instead of letting Chrome show the confusing "download.htm - No file" error */
+async function downloadDocFile(docId: string, filename: string): Promise<void> {
+  const resp = await fetch(`/doc-api/docs/${docId}/download`)
+  if (!resp.ok) {
+    let msg = `Server returned ${resp.status}`
+    try {
+      const body = await resp.json()
+      if (body?.error) msg = body.error
+    } catch { /* ignore parse errors */ }
+    throw new Error(msg)
+  }
+  const blob = await resp.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 interface DocumentListProps {
   documents: ApiDocument[]
   loading: boolean
@@ -68,11 +91,13 @@ function StatusBadge({ status }: { status: string }) {
 interface DocumentRowProps {
   doc: ApiDocument
   isDeleting: boolean
+  isDownloading: boolean
   isLast: boolean
   onDelete: (id: string, e: React.MouseEvent) => void
+  onDownload: (id: string, filename: string, e: React.MouseEvent) => void
 }
 
-const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isLast, onDelete }: DocumentRowProps) {
+const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, isLast, onDelete, onDownload }: DocumentRowProps) {
   const ext = doc.filename.split('.').pop()?.toLowerCase() || 'txt'
   const colors = EXT_COLORS[ext] || EXT_COLORS.document
 
@@ -146,23 +171,32 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isLast, onDelet
       </div>
 
       {/* Download */}
-      <a
-        href={`/doc-api/docs/${doc.id}/download`}
-        download
-        title="Download document"
+      <button
+        onClick={(e) => onDownload(doc.id, doc.filename, e)}
+        disabled={isDownloading}
+        title={isDownloading ? 'Downloading…' : 'Download document'}
         className="hover:bg-[rgba(255,255,255,0.05)] transition-all duration-[140ms]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
+          background: 'transparent', border: '1px solid transparent',
+          cursor: isDownloading ? 'wait' : 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'var(--t3)', marginRight: '4px'
+          color: 'var(--t3)', marginRight: '4px',
         }}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-      </a>
+        {isDownloading ? (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            style={{ animation: 'spin 1s linear infinite' }}>
+            <path d="M21 12a9 9 0 11-6.219-8.56" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        )}
+      </button>
 
       {/* Delete */}
       <button
@@ -199,6 +233,8 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isLast, onDelet
 export default function DocumentList({ documents, loading, onDelete }: DocumentListProps) {
   const { t } = useLocale()
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleDelete = useCallback(async (id: string, e: React.MouseEvent) => {
@@ -214,6 +250,21 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
       setDeletingId(null)
     }
   }, [onDelete])
+
+  const handleDownload = useCallback(async (id: string, filename: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setDownloadingId(id)
+    setDownloadError(null)
+    try {
+      await downloadDocFile(id, filename)
+    } catch (err: any) {
+      const msg = err?.message || 'Download failed'
+      setDownloadError(`${filename}: ${msg}`)
+      setTimeout(() => setDownloadError(null), 6000)
+    } finally {
+      setDownloadingId(null)
+    }
+  }, [])
 
   const filteredDocs = useMemo(() => {
     if (!searchQuery.trim()) return documents
@@ -240,6 +291,22 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+      {/* Download error toast */}
+      {downloadError && (
+        <div style={{
+          background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.35)',
+          borderRadius: 'var(--r-lg)', padding: '10px 14px',
+          display: 'flex', alignItems: 'center', gap: '10px',
+          fontSize: '13px', color: '#f87171',
+        }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span>Download failed — {downloadError}</span>
+          <button onClick={() => setDownloadError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div style={{ display: 'flex', gap: '10px' }}>
@@ -314,8 +381,10 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
               key={doc.id}
               doc={doc}
               isDeleting={deletingId === doc.id}
+              isDownloading={downloadingId === doc.id}
               isLast={idx === filteredDocs.length - 1}
               onDelete={handleDelete}
+              onDownload={handleDownload}
             />
           ))}
 
