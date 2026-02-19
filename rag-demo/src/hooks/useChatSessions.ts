@@ -1,40 +1,13 @@
 import { useState, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+import {
+    type Message,
+    type ChatSession,
+    loadSessions,
+    saveSessions,
+} from './chatSessionStore'
 
-export interface Message {
-    role: 'user' | 'ai'
-    content: string
-    timestamp: string // ISO string — survives JSON serialization
-    sources?: Array<{ file: string; excerpt: string; score: number }>
-}
-
-export interface ChatSession {
-    id: string
-    title: string
-    messages: Message[]
-    createdAt: string
-    updatedAt: string
-}
-
-const SESSIONS_KEY = 'rag-chat-sessions'
 const ACTIVE_KEY = 'rag-active-session'
-const MAX_SESSIONS = 50
-
-function loadSessions(): ChatSession[] {
-    try {
-        const raw = localStorage.getItem(SESSIONS_KEY)
-        if (!raw) return []
-        return JSON.parse(raw) as ChatSession[]
-    } catch {
-        return []
-    }
-}
-
-function saveSessions(sessions: ChatSession[]) {
-    // Keep most recent sessions to avoid blowing up localStorage
-    const trimmed = sessions.slice(0, MAX_SESSIONS)
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(trimmed))
-}
 
 function makeSession(): ChatSession {
     return {
