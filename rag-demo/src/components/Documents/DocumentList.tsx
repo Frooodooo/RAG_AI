@@ -90,7 +90,7 @@ export default function DocumentList({ documents, loading }: { documents: Docume
 
         return (
           <div
-            key={idx}
+            key={doc.id}
             style={{
               display: 'grid', gridTemplateColumns: '1fr 100px 120px 100px',
               padding: '12px 16px', alignItems: 'center',
