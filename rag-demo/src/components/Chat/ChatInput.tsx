@@ -51,6 +51,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('chat.placeholder') as string}
+            aria-label={t('chat.placeholder') as string}
             disabled={disabled}
             rows={1}
             style={{
@@ -73,6 +74,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             onClick={handleSubmit}
             disabled={!canSend}
             title={t('chat.send') as string}
+            aria-label={t('chat.send') as string}
+            className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             style={{
               width: '36px',
               height: '36px',
@@ -105,6 +108,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
           >
             {disabled ? (
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                role="status" aria-label={t('chat.thinking') as string}
                 style={{ animation: 'spin 1s linear infinite' }}>
                 <path d="M21 12a9 9 0 11-6.219-8.56" />
               </svg>
