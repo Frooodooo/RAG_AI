@@ -9,8 +9,8 @@ if (!API_KEY) {
     process.exit(1);
 }
 
-if (!/^[a-zA-Z0-9_-]{5,255}$/.test(API_KEY)) {
-    console.error('Error: N8N_API_KEY must be a valid alphanumeric string (5-255 chars).');
+if (!/^[a-zA-Z0-9_.\-=]{5,512}$/.test(API_KEY)) {
+    console.error('Error: N8N_API_KEY must be 5-512 chars (alphanumeric, underscore, hyphen, dot — supports both JWT and n8n_api_ key formats).');
     process.exit(1);
 }
 

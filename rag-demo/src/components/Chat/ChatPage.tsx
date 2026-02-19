@@ -11,9 +11,10 @@ import { ThinkingIndicator } from './ThinkingIndicator'
 
 interface ChatPageProps {
   onProcessingChange?: (isProcessing: boolean) => void
+  onExecution?: (executionId: string) => void
 }
 
-export default function ChatPage({ onProcessingChange }: ChatPageProps) {
+export default function ChatPage({ onProcessingChange, onExecution }: ChatPageProps) {
   const { t } = useLocale()
   const {
     sessions, activeSession, activeSessionId,
@@ -35,6 +36,7 @@ export default function ChatPage({ onProcessingChange }: ChatPageProps) {
     setLoading(true)
     try {
       const response = await sendChat(text, activeSessionId)
+      if (response.executionId) onExecution?.(response.executionId)
       addMessage({ role: 'ai', content: response.answer, timestamp: new Date().toISOString(), sources: response.sources })
     } catch {
       addMessage({ role: 'ai', content: 'Atvainojiet, radās kļūda savienojumā ar serveri.\n\n*Sorry, a server connection error occurred.*', timestamp: new Date().toISOString() })

@@ -67,7 +67,7 @@
         {
             "parameters": {
                 "respondWith": "json",
-                "responseBody": "={{ JSON.stringify({ duplicate: true, id: $json.id, filename: $json.filename, status: $json.status, chunks: $json.chunks, message: $json.message || 'Document already indexed' }) }}",
+                "responseBody": "={{ JSON.stringify({ duplicate: true, id: $json.id, filename: $json.filename, status: $json.status, chunks: $json.chunks, executionId: $execution.id, message: $json.message || 'Document already indexed' }) }}",
                 "options": {}
             },
             "type": "n8n-nodes-base.respondToWebhook",
@@ -78,7 +78,7 @@
         {
             "parameters": {
                 "respondWith": "json",
-                "responseBody": "={{ JSON.stringify({ success: true, processing: true, id: $json.id, filename: $json.filename, collection: $json.collection, message: 'Document received – indexing in progress' }) }}",
+                "responseBody": "={{ JSON.stringify({ success: true, processing: true, id: $json.id, filename: $json.filename, collection: $json.collection, executionId: $execution.id, message: 'Document received – indexing in progress' }) }}",
                 "options": {}
             },
             "type": "n8n-nodes-base.respondToWebhook",

@@ -5,6 +5,7 @@ import { useLocale } from '../../i18n'
 
 interface UploadZoneProps {
   onUploadComplete: () => void
+  onExecution?: (executionId: string) => void
 }
 
 type UploadStage = 'idle' | 'reading' | 'uploading' | 'processing' | 'done' | 'duplicate' | 'error'
@@ -29,7 +30,7 @@ const STAGE_SUB: Record<UploadStage, { en: string; lv: string }> = {
   error:      { en: 'Please try again',                                lv: 'Lūdzu, mēģiniet vēlreiz' },
 }
 
-export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
+export default function UploadZone({ onUploadComplete, onExecution }: UploadZoneProps) {
   const { t, locale } = useLocale()
   const [stage, setStage] = useState<UploadStage>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -51,6 +52,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
         setStage('duplicate')
       } else {
         setStage('processing')
+        if (result.executionId) onExecution?.(result.executionId)
         onUploadComplete()
       }
 

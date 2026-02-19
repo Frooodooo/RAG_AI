@@ -1,0 +1,85 @@
+{
+  "name": "Document Upload – RAG Pipeline",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300],
+      "description": "Receives POST /webhook/upload\n{filename, fileBase64, mimeType}"
+    },
+    {
+      "name": "Extract Input",
+      "type": "n8n-nodes-base.code",
+      "position": [460, 300],
+      "description": "Validates filename + base64 payload,\nsets mimeType default"
+    },
+    {
+      "name": "Register Document",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [680, 300],
+      "description": "SHA-256 dedup check + SQLite registration.\nExtracts text from PDF/DOCX/XLSX.\ndoc-server :3001"
+    },
+    {
+      "name": "Is Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "position": [900, 300],
+      "description": "Already indexed? → respond immediately.\nNew file? → continue to embedding."
+    },
+    {
+      "name": "Respond Duplicate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1120, 160],
+      "description": "Returns {duplicate: true, id}\nFile was already indexed."
+    },
+    {
+      "name": "Respond Processing",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1120, 440],
+      "description": "Returns {processing: true, id, executionId}\nBrowser gets response NOW.\nEmbedding continues in background."
+    },
+    {
+      "name": "Chunk and Embed",
+      "type": "n8n-nodes-base.code",
+      "position": [1340, 440],
+      "description": "Splits text into 500-char chunks\n(50-char overlap, max 200 chunks).\nEmbeds each with nomic-embed-text-v2-moe."
+    },
+    {
+      "name": "Create Qdrant Collection",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1560, 440],
+      "description": "Ensures rag_docs collection exists\n(768-dim, Cosine distance).\nQdrant :6333"
+    },
+    {
+      "name": "Check Has Points",
+      "type": "n8n-nodes-base.code",
+      "position": [1780, 440],
+      "description": "Validates embedding results.\nSkips insert for docs with no\nextractable text."
+    },
+    {
+      "name": "Insert Qdrant Points",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [2000, 440],
+      "description": "Batch-inserts all embedding vectors\ninto Qdrant rag_docs collection\nwith doc_id + filename payload."
+    },
+    {
+      "name": "Update Status Ready",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [2220, 440],
+      "description": "Marks document as ready in SQLite.\nFrontend polling will now show\nthe document in the list."
+    }
+  ],
+  "connections": {
+    "Webhook":                  { "main": [[{ "node": "Extract Input",           "type": "main", "index": 0 }]] },
+    "Extract Input":            { "main": [[{ "node": "Register Document",        "type": "main", "index": 0 }]] },
+    "Register Document":        { "main": [[{ "node": "Is Duplicate?",            "type": "main", "index": 0 }]] },
+    "Is Duplicate?":            { "main": [
+      [{ "node": "Respond Duplicate",   "type": "main", "index": 0 }],
+      [{ "node": "Respond Processing",  "type": "main", "index": 0 }]
+    ]},
+    "Respond Processing":       { "main": [[{ "node": "Chunk and Embed",          "type": "main", "index": 0 }]] },
+    "Chunk and Embed":          { "main": [[{ "node": "Create Qdrant Collection", "type": "main", "index": 0 }]] },
+    "Create Qdrant Collection": { "main": [[{ "node": "Check Has Points",         "type": "main", "index": 0 }]] },
+    "Check Has Points":         { "main": [[{ "node": "Insert Qdrant Points",     "type": "main", "index": 0 }]] },
+    "Insert Qdrant Points":     { "main": [[{ "node": "Update Status Ready",      "type": "main", "index": 0 }]] }
+  }
+}

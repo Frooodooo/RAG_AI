@@ -6,7 +6,11 @@ import UploadZone from './UploadZone'
 import DocumentList from './DocumentList'
 import DocSearchPanel from './DocSearchPanel'
 
-export default function DocumentsPage() {
+interface DocumentsPageProps {
+  onExecution?: (executionId: string) => void
+}
+
+export default function DocumentsPage({ onExecution }: DocumentsPageProps = {}) {
   const { t } = useLocale()
   const queryClient = useQueryClient()
   const [showSearch, setShowSearch] = useState(false)
@@ -127,7 +131,7 @@ export default function DocumentsPage() {
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px', background: 'var(--bg-0)' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <UploadZone onUploadComplete={handleUploadComplete} />
+          <UploadZone onUploadComplete={handleUploadComplete} onExecution={onExecution} />
 
           {showSearch && (
             <DocSearchPanel documents={documents || []} />

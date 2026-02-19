@@ -7,6 +7,7 @@ import WorkflowVisualizer from './components/WorkflowViz/WorkflowVisualizer'
 import DocumentsPage from './components/Documents/DocumentsPage'
 
 type Tab = 'chat' | 'workflow' | 'documents'
+type WorkflowType = 'chat' | 'upload'
 
 const NAV_ITEMS: { id: Tab; labelKey: string; icon: React.ReactNode }[] = [
   {
@@ -46,7 +47,19 @@ function App() {
   const { locale, setLocale, t } = useLocale()
   const [activeTab, setActiveTab] = useState<Tab>('chat')
   const [isChatProcessing, setIsChatProcessing] = useState(false)
+  const [executionId, setExecutionId] = useState<string | null>(null)
+  const [activeWorkflow, setActiveWorkflow] = useState<WorkflowType>('chat')
   const [health, setHealth] = useState<{ qdrant: string; ollama: string; n8n: string } | null>(null)
+
+  const handleChatExecution = (id: string) => {
+    setExecutionId(id)
+    setActiveWorkflow('chat')
+  }
+
+  const handleUploadExecution = (id: string) => {
+    setExecutionId(id)
+    setActiveWorkflow('upload')
+  }
 
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setHealth(null))
@@ -142,7 +155,7 @@ function App() {
       {/* ══════════ Main Content Area ══════════ */}
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {activeTab === 'chat' && (
-          <ChatPage onProcessingChange={setIsChatProcessing} />
+          <ChatPage onProcessingChange={setIsChatProcessing} onExecution={handleChatExecution} />
         )}
 
         {activeTab === 'workflow' && (
@@ -198,11 +211,15 @@ function App() {
                 </div>
               )}
             </div>
-            <WorkflowVisualizer isActive={isChatProcessing} />
+            <WorkflowVisualizer
+                isActive={isChatProcessing}
+                executionId={executionId}
+                workflowType={activeWorkflow}
+              />
           </div>
         )}
 
-        {activeTab === 'documents' && <DocumentsPage />}
+        {activeTab === 'documents' && <DocumentsPage onExecution={handleUploadExecution} />}
       </div>
     </div>
   )
