@@ -83,7 +83,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
           }}>
             {uploading ? (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" strokeWidth="2"
-                style={{ animation: 'spin 1s linear infinite' }}>
+                className="animate-spin">
                 <path d="M21 12a9 9 0 11-6.219-8.56" />
               </svg>
             ) : success ? (
