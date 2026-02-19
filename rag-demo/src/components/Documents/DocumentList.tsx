@@ -365,12 +365,20 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
             borderBottom: '1px solid var(--b1)',
             background: 'rgba(255,255,255,0.02)',
           }}>
-            {[t('docs.col_name'), t('docs.col_type'), t('docs.col_chunks'), t('docs.col_date'), t('docs.col_status'), '', ''].map((key, i) => (
-              <span key={i} style={{
+            {([
+              { id: 'name',   label: t('docs.col_name') },
+              { id: 'type',   label: t('docs.col_type') },
+              { id: 'chunks', label: t('docs.col_chunks') },
+              { id: 'date',   label: t('docs.col_date') },
+              { id: 'status', label: t('docs.col_status') },
+              { id: 'dl',     label: '' },
+              { id: 'del',    label: '' },
+            ] as const).map(({ id, label }) => (
+              <span key={id} style={{
                 fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
                 letterSpacing: '0.06em', color: 'var(--t3)',
               }}>
-                {key as string}
+                {label as string}
               </span>
             ))}
           </div>
