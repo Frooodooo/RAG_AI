@@ -4,6 +4,7 @@
 # ============================================================
 
 $ErrorActionPreference = "Continue"
+$ROOT = $PSScriptRoot   # auto-resolves to the folder containing this script
 
 Write-Host ""
 Write-Host "  ========================================" -ForegroundColor Cyan
@@ -56,48 +57,63 @@ else {
     }
 }
 
-# 4. Doc Server (Development Mode - Runs via Node, not Docker)
+# 4. Doc Server (node process — handles upload, text extraction, embeddings, and health checks)
 Write-Host "[4/6] Starting doc-server (local node)..." -ForegroundColor Yellow
 
-$docServerRunning = Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*doc-server/server.js*" }
-if ($docServerRunning) {
-    Write-Host "  [OK] doc-server is already running." -ForegroundColor Green
+# Use port check instead of fragile CommandLine property inspection
+$port3001 = Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue
+$docServerJob = $null
+
+if ($port3001) {
+    Write-Host "  [OK] doc-server already running on port 3001" -ForegroundColor Green
 }
 else {
-    # Install dependencies if node_modules missing
-    if (-not (Test-Path "c:\Users\Frooodooo\Documents\RAG_AI\doc-server\node_modules")) {
+    # Install dependencies if node_modules is missing
+    if (-not (Test-Path "$ROOT\doc-server\node_modules")) {
         Write-Host "  Installing doc-server dependencies..." -ForegroundColor Gray
-        Start-Process -FilePath "npm" -ArgumentList "install" -WorkingDirectory "c:\Users\Frooodooo\Documents\RAG_AI\doc-server" -Wait -WindowStyle Hidden
+        Start-Process -FilePath "npm" -ArgumentList "install" -WorkingDirectory "$ROOT\doc-server" -Wait -WindowStyle Hidden
     }
-   
+
     $docServerJob = Start-Job -ScriptBlock {
-        Set-Location "c:\Users\Frooodooo\Documents\RAG_AI"
-        node doc-server/server.js 2>&1 | Tee-Object -FilePath "c:\Users\Frooodooo\Documents\RAG_AI\doc-server.log"
+        param($root)
+        Set-Location $root
+        node doc-server/server.js 2>&1 | Tee-Object -FilePath "$root\doc-server.log"
+    } -ArgumentList $ROOT
+
+    Start-Sleep 3
+
+    # Confirm it actually came up
+    $docOk = Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue
+    if ($docOk) {
+        Write-Host "  [OK] doc-server started on port 3001" -ForegroundColor Green
     }
-    Start-Sleep 5
-    Write-Host "  [OK] doc-server started on port 3001 (PID: $($docServerJob.Id))" -ForegroundColor Green
+    else {
+        Write-Host "  [WARN] doc-server may not have started — check doc-server.log" -ForegroundColor Red
+    }
 }
 
 # 5. Vite Dev Server
 Write-Host "[5/6] Starting Vite dev server..." -ForegroundColor Yellow
 $viteJob = Start-Job -ScriptBlock {
-    Set-Location "c:\Users\Frooodooo\Documents\RAG_AI\rag-demo"
-    Write-Host "  [...] Clearing Vite cache..."
+    param($root)
+    Set-Location "$root\rag-demo"
+    # Clear Vite cache so any proxy-config changes take effect immediately
     Remove-Item -Path "node_modules\.vite" -Recurse -Force -ErrorAction SilentlyContinue
     npm run dev 2>&1
-}
+} -ArgumentList $ROOT
 Start-Sleep 4
 Write-Host "  [OK] Vite dev server starting on http://localhost:3000" -ForegroundColor Green
 
 # 6. Cloudflare Tunnel
 Write-Host "[6/6] Starting Cloudflare Tunnel..." -ForegroundColor Yellow
-$tunnelLogFile = "c:\Users\Frooodooo\Documents\RAG_AI\tunnel-log.txt"
+$tunnelLogFile = "$ROOT\tunnel-log.txt"
 $tunnelJob = Start-Job -ScriptBlock {
+    param($root)
     & "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --url http://localhost:3000 2>&1 |
-    Tee-Object -FilePath "c:\Users\Frooodooo\Documents\RAG_AI\tunnel-log.txt"
-}
+    Tee-Object -FilePath "$root\tunnel-log.txt"
+} -ArgumentList $ROOT
 
-# Wait for tunnel
+# Wait for tunnel URL to appear in the log
 $tunnelUrl = $null
 for ($i = 0; $i -lt 20; $i++) {
     Start-Sleep 2
@@ -128,27 +144,31 @@ Write-Host ""
 Write-Host "  Press Ctrl+C to stop all services." -ForegroundColor Gray
 Write-Host ""
 
-# Monitor
+# Monitor — restart Vite automatically if it crashes
 try {
     while ($true) {
         Start-Sleep 5
         if ($viteJob.State -eq "Failed") {
             Write-Host "  [WARN] Vite crashed! Restarting..." -ForegroundColor Red
             $viteJob = Start-Job -ScriptBlock {
-                Set-Location "c:\Users\Frooodooo\Documents\RAG_AI\rag-demo"
-                Write-Host "  [...] Clearing Vite cache..."
+                param($root)
+                Set-Location "$root\rag-demo"
                 Remove-Item -Path "node_modules\.vite" -Recurse -Force -ErrorAction SilentlyContinue
                 npm run dev 2>&1
-            }
+            } -ArgumentList $ROOT
         }
     }
 }
 finally {
     Write-Host ""
     Write-Host "  Shutting down..." -ForegroundColor Yellow
-    Stop-Job $viteJob -ErrorAction SilentlyContinue
-    Stop-Job $tunnelJob -ErrorAction SilentlyContinue
-    Remove-Job $viteJob -ErrorAction SilentlyContinue
+    Stop-Job  $viteJob   -ErrorAction SilentlyContinue
+    Stop-Job  $tunnelJob -ErrorAction SilentlyContinue
+    Remove-Job $viteJob   -ErrorAction SilentlyContinue
     Remove-Job $tunnelJob -ErrorAction SilentlyContinue
+    if ($docServerJob) {
+        Stop-Job   $docServerJob -ErrorAction SilentlyContinue
+        Remove-Job $docServerJob -ErrorAction SilentlyContinue
+    }
     Write-Host "  [OK] All services stopped." -ForegroundColor Green
 }
