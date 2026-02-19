@@ -115,9 +115,17 @@ function SessionItem({
 
     return (
         <div
+            role="listitem"
+            tabIndex={0}
             onClick={() => { if (!isRenaming) onSelect() }}
             onDoubleClick={(e) => { e.preventDefault(); setIsRenaming(true) }}
-            className="group relative flex items-start gap-2.5 mx-1.5 mb-0.5 px-3 py-2.5 rounded-lg cursor-pointer select-none"
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    if (!isRenaming) onSelect()
+                }
+            }}
+            className="group relative flex items-start gap-2.5 mx-1.5 mb-0.5 px-3 py-2.5 rounded-lg cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-primary)]"
             style={{
                 background: isActive
                     ? 'rgba(13, 148, 136, 0.18)'
@@ -186,7 +194,7 @@ function SessionItem({
                 >
                     {/* Force show via group hover workaround */}
                     <style>{`
-                        .group:hover .action-btns { opacity: 1 !important; }
+                        .group:hover .action-btns, .group:focus-within .action-btns { opacity: 1 !important; }
                     `}</style>
                     <div className="action-btns flex items-center gap-1" style={{ opacity: deletePhase === 'confirm' ? 1 : undefined }}>
                         {deletePhase === 'confirm' ? (
@@ -383,7 +391,7 @@ export default function SessionSidebar({
                 )}
 
                 {/* Session List */}
-                <div className="flex-1 overflow-y-auto py-1.5">
+                <div role="list" className="flex-1 overflow-y-auto py-1.5">
                     {filtered.length === 0 && (
                         <p className="text-xs text-center py-8 px-3" style={{ color: 'var(--text-muted)' }}>
                             {search ? 'No conversations found' : 'No conversations yet'}
