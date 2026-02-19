@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { format } from 'date-fns'
 import { useLocale } from '../../i18n'
 import { deleteDoc, type ApiDocument } from '../../api'
@@ -65,11 +65,123 @@ function StatusBadge({ status }: { status: string }) {
   return <span style={{ fontSize: '11px', color: 'var(--t3)' }}>{status}</span>
 }
 
+interface DocumentRowProps {
+  doc: ApiDocument
+  isDeleting: boolean
+  isLast: boolean
+  onDelete: (id: string, e: React.MouseEvent) => void
+}
+
+const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isLast, onDelete }: DocumentRowProps) {
+  const ext    = doc.filename.split('.').pop()?.toLowerCase() || 'txt'
+  const colors = EXT_COLORS[ext] || EXT_COLORS.document
+
+  return (
+    <div
+      className="hover:bg-[rgba(255,255,255,0.02)] transition-[background] duration-[140ms]"
+      style={{
+        display: 'grid', gridTemplateColumns: '1fr 80px 80px 120px 100px 40px',
+        padding: '12px 16px', alignItems: 'center',
+        borderBottom: isLast ? 'none' : '1px solid var(--b1)',
+        opacity: isDeleting ? 0.4 : 1,
+      }}
+    >
+      {/* Name */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+        <div style={{
+          width: '32px', height: '32px', borderRadius: 'var(--r-sm)', flexShrink: 0,
+          background: colors.bg, border: `1px solid ${colors.color}22`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{
+            fontSize: '9px', fontWeight: 800, textTransform: 'uppercase',
+            color: colors.color, fontFamily: 'var(--font-mono)',
+          }}>
+            {ext}
+          </span>
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <span style={{
+            fontSize: '13px', fontWeight: 500, color: 'var(--t1)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            display: 'block',
+          }} title={doc.filename}>
+            {doc.filename}
+          </span>
+          {doc.fileSize != null && (
+            <span style={{ fontSize: '11px', color: 'var(--t3)' }}>
+              {(doc.fileSize / 1024).toFixed(0)} KB
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Type badge */}
+      <span style={{
+        display: 'inline-flex', alignItems: 'center',
+        padding: '2px 8px', borderRadius: '999px',
+        fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
+        background: colors.bg, color: colors.color,
+        border: `1px solid ${colors.color}33`,
+      }}>
+        {ext.toUpperCase()}
+      </span>
+
+      {/* Chunks */}
+      <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-mono)' }}>
+        {doc.status === 'processing'
+          ? <span style={{ display: 'inline-block', opacity: 0.5 }}>…</span>
+          : doc.chunks > 0 ? doc.chunks.toLocaleString() : '0'
+        }
+      </span>
+
+      {/* Date */}
+      <span style={{ fontSize: '12px', color: 'var(--t3)' }}>
+        {doc.date ? format(new Date(doc.date), 'MMM d, yyyy') : 'Just now'}
+      </span>
+
+      {/* Status */}
+      <div>
+        <StatusBadge status={doc.status} />
+      </div>
+
+      {/* Delete */}
+      <button
+        onClick={(e) => onDelete(doc.id, e)}
+        disabled={isDeleting}
+        title="Remove document"
+        className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms]"
+        style={{
+          width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
+          background: 'transparent', border: '1px solid transparent',
+          cursor: isDeleting ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--t3)',
+        }}
+      >
+        {isDeleting ? (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            style={{ animation: 'spin 1s linear infinite' }}>
+            <path d="M21 12a9 9 0 11-6.219-8.56" />
+          </svg>
+        ) : (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M9 6V4h6v2" />
+          </svg>
+        )}
+      </button>
+    </div>
+  )
+})
+
 export default function DocumentList({ documents, loading, onDelete }: DocumentListProps) {
   const { t } = useLocale()
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  async function handleDelete(id: string, e: React.MouseEvent) {
+  const handleDelete = useCallback(async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!confirm('Remove this document from the index?')) return
     setDeletingId(id)
@@ -81,7 +193,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
     } finally {
       setDeletingId(null)
     }
-  }
+  }, [onDelete])
 
   if (loading) {
     return (
@@ -147,123 +259,15 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
       </div>
 
       {/* Rows */}
-      {documents.map((doc, idx) => {
-        const ext    = doc.filename.split('.').pop()?.toLowerCase() || 'txt'
-        const colors = EXT_COLORS[ext] || EXT_COLORS.document
-        const isDeleting = deletingId === doc.id
-
-        return (
-          <div
-            key={doc.id}
-            style={{
-              display: 'grid', gridTemplateColumns: '1fr 80px 80px 120px 100px 40px',
-              padding: '12px 16px', alignItems: 'center',
-              borderBottom: idx < documents.length - 1 ? '1px solid var(--b1)' : 'none',
-              transition: 'background 140ms',
-              opacity: isDeleting ? 0.4 : 1,
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-          >
-            {/* Name */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: 'var(--r-sm)', flexShrink: 0,
-                background: colors.bg, border: `1px solid ${colors.color}22`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{
-                  fontSize: '9px', fontWeight: 800, textTransform: 'uppercase',
-                  color: colors.color, fontFamily: 'var(--font-mono)',
-                }}>
-                  {ext}
-                </span>
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <span style={{
-                  fontSize: '13px', fontWeight: 500, color: 'var(--t1)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  display: 'block',
-                }} title={doc.filename}>
-                  {doc.filename}
-                </span>
-                {doc.fileSize != null && (
-                  <span style={{ fontSize: '11px', color: 'var(--t3)' }}>
-                    {(doc.fileSize / 1024).toFixed(0)} KB
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Type badge */}
-            <span style={{
-              display: 'inline-flex', alignItems: 'center',
-              padding: '2px 8px', borderRadius: '999px',
-              fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
-              background: colors.bg, color: colors.color,
-              border: `1px solid ${colors.color}33`,
-            }}>
-              {ext.toUpperCase()}
-            </span>
-
-            {/* Chunks */}
-            <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--font-mono)' }}>
-              {doc.status === 'processing'
-                ? <span style={{ display: 'inline-block', opacity: 0.5 }}>…</span>
-                : doc.chunks > 0 ? doc.chunks.toLocaleString() : '0'
-              }
-            </span>
-
-            {/* Date */}
-            <span style={{ fontSize: '12px', color: 'var(--t3)' }}>
-              {doc.date ? format(new Date(doc.date), 'MMM d, yyyy') : 'Just now'}
-            </span>
-
-            {/* Status */}
-            <div>
-              <StatusBadge status={doc.status} />
-            </div>
-
-            {/* Delete */}
-            <button
-              onClick={(e) => handleDelete(doc.id, e)}
-              disabled={isDeleting}
-              title="Remove document"
-              style={{
-                width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
-                background: 'transparent', border: '1px solid transparent',
-                cursor: isDeleting ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--t3)', transition: 'all 140ms',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(248,113,113,0.12)'
-                e.currentTarget.style.borderColor = 'rgba(248,113,113,0.25)'
-                e.currentTarget.style.color = '#f87171'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.borderColor = 'transparent'
-                e.currentTarget.style.color = 'var(--t3)'
-              }}
-            >
-              {isDeleting ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                  style={{ animation: 'spin 1s linear infinite' }}>
-                  <path d="M21 12a9 9 0 11-6.219-8.56" />
-                </svg>
-              ) : (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14H6L5 6" />
-                  <path d="M10 11v6M14 11v6" />
-                  <path d="M9 6V4h6v2" />
-                </svg>
-              )}
-            </button>
-          </div>
-        )
-      })}
+      {documents.map((doc, idx) => (
+        <DocumentRow
+          key={doc.id}
+          doc={doc}
+          isDeleting={deletingId === doc.id}
+          isLast={idx === documents.length - 1}
+          onDelete={handleDelete}
+        />
+      ))}
     </div>
   )
 }
