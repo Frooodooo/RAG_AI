@@ -57,40 +57,38 @@ else {
     }
 }
 
-# 4. Doc Server (node process — handles upload, text extraction, embeddings, and health checks)
-Write-Host "[4/6] Starting doc-server (local node)..." -ForegroundColor Yellow
+# 4. Doc Server — always rebuild Docker image so server.js changes take effect immediately
+Write-Host "[4/6] Building & starting rag-doc-server (Docker)..." -ForegroundColor Yellow
 
-# Use port check instead of fragile CommandLine property inspection
-$port3001 = Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue
-$docServerJob = $null
+# Stop and remove any existing container (stale image = no /upload endpoint)
+docker stop rag-doc-server 2>$null | Out-Null
+docker rm   rag-doc-server 2>$null | Out-Null
 
-if ($port3001) {
-    Write-Host "  [OK] doc-server already running on port 3001" -ForegroundColor Green
-}
-else {
-    # Install dependencies if node_modules is missing
-    if (-not (Test-Path "$ROOT\doc-server\node_modules")) {
-        Write-Host "  Installing doc-server dependencies..." -ForegroundColor Gray
-        Start-Process -FilePath "npm" -ArgumentList "install" -WorkingDirectory "$ROOT\doc-server" -Wait -WindowStyle Hidden
-    }
-
-    $docServerJob = Start-Job -ScriptBlock {
-        param($root)
-        Set-Location $root
-        node doc-server/server.js 2>&1 | Tee-Object -FilePath "$root\doc-server.log"
-    } -ArgumentList $ROOT
+# Build fresh image from ./doc-server (Docker caches layers; only server.js layer re-runs)
+Write-Host "  Building image from .\doc-server..." -ForegroundColor Gray
+docker build -t rag-doc-server "$ROOT\doc-server" > "$ROOT\doc-server-build.log" 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "  [ERROR] Docker build failed — see doc-server-build.log" -ForegroundColor Red
+} else {
+    # host.docker.internal resolves to the Windows host from inside Docker containers
+    docker run -d `
+        --name rag-doc-server `
+        -p 3001:3001 `
+        -v rag_doc_data:/app/data `
+        -e QDRANT_URL=http://host.docker.internal:6333 `
+        -e OLLAMA_URL=http://host.docker.internal:11434 `
+        -e N8N_URL=http://host.docker.internal:5678 `
+        rag-doc-server | Out-Null
 
     Start-Sleep 3
-
-    # Confirm it actually came up
-    $docOk = Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue
-    if ($docOk) {
-        Write-Host "  [OK] doc-server started on port 3001" -ForegroundColor Green
-    }
-    else {
-        Write-Host "  [WARN] doc-server may not have started — check doc-server.log" -ForegroundColor Red
+    $docCheck = docker ps --filter "name=rag-doc-server" --format "{{.Names}}" 2>$null
+    if ($docCheck -eq "rag-doc-server") {
+        Write-Host "  [OK] rag-doc-server running on port 3001" -ForegroundColor Green
+    } else {
+        Write-Host "  [ERROR] rag-doc-server failed — run: docker logs rag-doc-server" -ForegroundColor Red
     }
 }
+$docServerJob = $null  # Docker manages its own lifecycle; no PS job to track
 
 # 5. Vite Dev Server
 Write-Host "[5/6] Starting Vite dev server..." -ForegroundColor Yellow
@@ -166,9 +164,6 @@ finally {
     Stop-Job  $tunnelJob -ErrorAction SilentlyContinue
     Remove-Job $viteJob   -ErrorAction SilentlyContinue
     Remove-Job $tunnelJob -ErrorAction SilentlyContinue
-    if ($docServerJob) {
-        Stop-Job   $docServerJob -ErrorAction SilentlyContinue
-        Remove-Job $docServerJob -ErrorAction SilentlyContinue
-    }
+    docker stop rag-doc-server 2>$null | Out-Null
     Write-Host "  [OK] All services stopped." -ForegroundColor Green
 }

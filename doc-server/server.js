@@ -127,7 +127,8 @@ app.get('/health', async (_req, res) => {
   } catch (_) {}
 
   try {
-    const r = await fetch('http://localhost:5678/healthz', { signal: AbortSignal.timeout(3000) });
+    const n8nUrl = process.env.N8N_URL || 'http://localhost:5678';
+    const r = await fetch(`${n8nUrl}/healthz`, { signal: AbortSignal.timeout(3000) });
     if (r.ok) n8n = 'ok';
   } catch (_) {}
 
