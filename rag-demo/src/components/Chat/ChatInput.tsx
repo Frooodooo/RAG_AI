@@ -131,8 +131,6 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
           <span style={{ marginLeft: '8px', opacity: 0.7 }}>· Enter to send · Shift+Enter for newline</span>
         </p>
       </div>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
