@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useLocale } from '../../i18n'
 import type { ChatSession } from '../../hooks/useChatSessions'
+import { ChatBubbleIcon, XIcon, CheckIcon, TrashIcon, SidebarIcon, PlusIcon, SearchIcon } from '../Icons'
 
 interface SessionSidebarProps {
     sessions: ChatSession[]
@@ -143,13 +144,10 @@ function SessionItem({
             }}
         >
             {/* Chat icon */}
-            <svg
+            <ChatBubbleIcon
                 width="13" height="13"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                 style={{ color: isActive ? 'var(--text-accent)' : 'var(--text-muted)', flexShrink: 0, marginTop: '3px' }}
-            >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+            />
 
             {/* Session info */}
             <div className="flex-1 min-w-0 pr-6">
@@ -206,10 +204,7 @@ function SessionItem({
                                     className="w-5 h-5 flex items-center justify-center rounded transition-all"
                                     style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
                                 >
-                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                        <line x1="18" y1="6" x2="6" y2="18" />
-                                        <line x1="6" y1="6" x2="18" y2="18" />
-                                    </svg>
+                                    <XIcon width="9" height="9" strokeWidth="2.5" />
                                 </button>
                                 {/* Confirm delete */}
                                 <button
@@ -218,9 +213,7 @@ function SessionItem({
                                     className="w-5 h-5 flex items-center justify-center rounded transition-all"
                                     style={{ background: 'var(--accent-rose)', color: 'white', border: 'none', cursor: 'pointer' }}
                                 >
-                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                        <polyline points="20 6 9 17 4 12" />
-                                    </svg>
+                                    <CheckIcon width="9" height="9" strokeWidth="3" />
                                 </button>
                             </>
                         ) : (
@@ -232,11 +225,7 @@ function SessionItem({
                                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-rose)')}
                                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                             >
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                    <polyline points="3 6 5 6 21 6" />
-                                    <path d="M19 6l-1 14H6L5 6" />
-                                    <path d="M9 6V4h6v2" />
-                                </svg>
+                                <TrashIcon width="10" height="10" strokeWidth="2.5" />
                             </button>
                         )}
                     </div>
@@ -301,10 +290,7 @@ export default function SessionSidebar({
                     }}
                 >
                     {/* Sidebar icon */}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <line x1="9" y1="3" x2="9" y2="21" />
-                    </svg>
+                    <SidebarIcon width="16" height="16" strokeWidth="2" />
                 </button>
 
                 {/* New Chat button — only when expanded */}
@@ -322,10 +308,7 @@ export default function SessionSidebar({
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--accent-secondary)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--accent-primary)')}
                     >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
+                        <PlusIcon width="12" height="12" strokeWidth="2.5" />
                         {t('chat.new_chat') as string}
                     </button>
                 )}
@@ -345,10 +328,7 @@ export default function SessionSidebar({
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--accent-secondary)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--accent-primary)')}
                     >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
+                        <PlusIcon width="13" height="13" strokeWidth="2.5" />
                     </button>
                 )}
             </div>
@@ -362,11 +342,8 @@ export default function SessionSidebar({
                             className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
                             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)' }}
                         >
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                                style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
+                            <SearchIcon width="11" height="11" strokeWidth="2"
+                                style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                             <input
                                 type="text"
                                 value={search}
@@ -380,10 +357,7 @@ export default function SessionSidebar({
                                     onClick={() => setSearch('')}
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                        <line x1="18" y1="6" x2="6" y2="18" />
-                                        <line x1="6" y1="6" x2="18" y2="18" />
-                                    </svg>
+                                    <XIcon width="10" height="10" strokeWidth="2.5" />
                                 </button>
                             )}
                         </div>

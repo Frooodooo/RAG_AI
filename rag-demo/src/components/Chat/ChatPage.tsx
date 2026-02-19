@@ -6,6 +6,7 @@ import ChatInput from './ChatInput'
 import ChatMessage from './ChatMessage'
 import SourcesPanel from './SourcesPanel'
 import SessionSidebar from './SessionSidebar'
+import { StackIcon, ChatBubbleIcon, EditIcon, TrashIcon } from '../Icons'
 
 interface ChatPageProps {
   onProcessingChange?: (isProcessing: boolean) => void
@@ -103,9 +104,7 @@ export default function ChatPage({ onProcessingChange }: ChatPageProps) {
                       border: '1px solid rgba(93,107,254,0.3)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" strokeWidth="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                      </svg>
+                      <StackIcon width="14" height="14" stroke="var(--accent-2)" strokeWidth="2" />
                     </div>
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: '12px',
@@ -164,9 +163,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
         {/* Icon */}
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--t-accent)" strokeWidth="2" style={{ flexShrink: 0 }}>
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
+        <ChatBubbleIcon width="13" height="13" stroke="var(--t-accent)" strokeWidth="2" style={{ flexShrink: 0 }} />
 
         {isRenaming ? (
           <input
@@ -194,10 +191,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--t1)', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {title}
             </span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--t3)', opacity: 0.5, flexShrink: 0 }}>
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
+            <EditIcon width="11" height="11" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--t3)', opacity: 0.5, flexShrink: 0 }} />
           </button>
         )}
 
@@ -215,10 +209,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
           style={{ fontSize: '12px', padding: '5px 11px', marginLeft: '12px', flexShrink: 0 }}
           title="Clear conversation"
         >
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" />
-            <path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" />
-          </svg>
+          <TrashIcon width="11" height="11" stroke="currentColor" strokeWidth="2" />
           {t('chat.clear') as string}
         </button>
       )}
@@ -242,11 +233,7 @@ function WelcomeScreen({ loading, onSend, t }: { loading: boolean; onSend: (t: s
         boxShadow: '0 0 60px rgba(93,107,254,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2L2 7l10 5 10-5-10-5z" />
-          <path d="M2 17l10 5 10-5" />
-          <path d="M2 12l10 5 10-5" />
-        </svg>
+        <StackIcon width="30" height="30" stroke="var(--accent-2)" strokeWidth="1.5" />
       </div>
 
       <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--t1)', letterSpacing: '-0.03em', marginBottom: '10px' }}>
