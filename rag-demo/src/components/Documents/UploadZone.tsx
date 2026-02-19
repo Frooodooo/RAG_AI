@@ -112,7 +112,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
             <>
               <button
                 type="button"
-                className="btn-primary"
+                className="btn btn-primary"
                 style={{ padding: '8px 20px', fontSize: '13px', marginTop: '4px' }}
               >
                 {t('docs.upload_btn') as string}
