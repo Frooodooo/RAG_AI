@@ -90,7 +90,8 @@ async function main() {
     console.log('\n--- Testing /webhook/health ---');
     const r = await fetch('http://localhost:5678/webhook/health', { signal: AbortSignal.timeout(15000) });
     console.log(`Status: ${r.status}`);
-    console.log(`Body: ${await r.text()}`);
+    await r.text(); // Consume the body without logging it
+    console.log('Response body received');
 }
 
 main();
