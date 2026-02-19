@@ -280,9 +280,9 @@ app.delete('/docs/:id', async (req, res) => {
   if (!doc) return res.status(404).json({ error: 'Not found' });
 
   try {
-    // Use QDRANT_URL env var; default to host.docker.internal for Docker deployments
-    // Set QDRANT_URL=http://localhost:6333 when running doc-server natively (non-Docker)
-    const qdrantUrl = process.env.QDRANT_URL || 'http://host.docker.internal:6333';
+    // Use QDRANT_URL env var; defaults to localhost because doc-server runs natively.
+    // Set QDRANT_URL=http://host.docker.internal:6333 only if doc-server runs in Docker.
+    const qdrantUrl = process.env.QDRANT_URL || 'http://localhost:6333';
     const collectionName = 'rag_docs';
 
     console.log(`[delete] Removing vectors for doc ${docId} from Qdrant...`);
