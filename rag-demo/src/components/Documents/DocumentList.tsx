@@ -65,6 +65,11 @@ export default function DocumentList({ documents, loading }: { documents: Docume
       background: 'var(--bg-2)', border: '1px solid var(--b1)',
       borderRadius: 'var(--r-xl)', overflow: 'hidden',
     }}>
+      <style>{`
+        .doc-row { transition: background 140ms; }
+        .doc-row:hover { background: rgba(255,255,255,0.02) !important; }
+      `}</style>
+
       {/* Table header */}
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 100px 120px 100px',
@@ -73,7 +78,7 @@ export default function DocumentList({ documents, loading }: { documents: Docume
         background: 'rgba(255,255,255,0.02)',
       }}>
         {(['docs.col_name', 'docs.col_type', 'docs.col_date', 'docs.col_status'] as const).map((key, i) => (
-          <span key={i} style={{
+          <span key={key} style={{
             fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
             letterSpacing: '0.06em', color: 'var(--t3)',
             textAlign: i === 3 ? 'right' : 'left',
@@ -90,15 +95,13 @@ export default function DocumentList({ documents, loading }: { documents: Docume
 
         return (
           <div
-            key={idx}
+            key={doc.id}
+            className="doc-row"
             style={{
               display: 'grid', gridTemplateColumns: '1fr 100px 120px 100px',
               padding: '12px 16px', alignItems: 'center',
               borderBottom: idx < documents.length - 1 ? '1px solid var(--b1)' : 'none',
-              transition: 'background 140ms',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
           >
             {/* Name */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
