@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getDocs } from '../../api'
 import { useLocale } from '../../i18n'
 import UploadZone from './UploadZone'
@@ -7,17 +7,17 @@ import DocumentList from './DocumentList'
 
 export default function DocumentsPage() {
   const { t } = useLocale()
-  const [refreshKey, setRefreshKey] = useState(0)
+  const queryClient = useQueryClient()
 
   const { data: documents, isLoading } = useQuery({
-    queryKey: ['documents', refreshKey],
+    queryKey: ['documents'],
     queryFn: getDocs,
     retry: 1,
   })
 
   const handleUploadComplete = useCallback(() => {
-    setRefreshKey((k) => k + 1)
-  }, [])
+    queryClient.invalidateQueries({ queryKey: ['documents'] })
+  }, [queryClient])
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
