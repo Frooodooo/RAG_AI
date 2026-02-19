@@ -269,38 +269,23 @@ function WelcomeScreen({ loading, onSend, t }: { loading: boolean; onSend: (t: s
 function StarterChip({ text, label, disabled, onSend }: { text: string; label: string; disabled: boolean; onSend: (t: string) => void }) {
   return (
     <button
+      type="button"
       onClick={() => onSend(text)}
       disabled={disabled}
-      style={{
-        background: 'var(--bg-2)',
-        border: '1px solid var(--b1)',
-        borderRadius: 'var(--r-lg)',
-        padding: '14px 16px',
-        textAlign: 'left',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-        transition: 'all 180ms var(--ease)',
-        fontFamily: 'var(--font)',
-      }}
-      onMouseEnter={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.borderColor = 'rgba(93,107,254,0.3)'
-          e.currentTarget.style.background = 'var(--bg-3)'
-          e.currentTarget.style.transform = 'translateY(-2px)'
-          e.currentTarget.style.boxShadow = '0 4px 20px rgba(93,107,254,0.1)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = ''
-        e.currentTarget.style.background = 'var(--bg-2)'
-        e.currentTarget.style.transform = ''
-        e.currentTarget.style.boxShadow = ''
-      }}
+      className={`
+        w-full text-left p-[14px_16px] rounded-[var(--r-lg)] border border-[var(--b1)] bg-[var(--bg-2)]
+        transition-all duration-[180ms] ease-[var(--ease)] [font-family:var(--font)]
+        focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]
+        disabled:cursor-not-allowed disabled:opacity-50
+        enabled:hover:border-[rgba(93,107,254,0.3)] enabled:hover:bg-[var(--bg-3)]
+        enabled:hover:-translate-y-[2px] enabled:hover:shadow-[0_4px_20px_rgba(93,107,254,0.1)]
+        cursor-pointer
+      `}
     >
-      <span style={{ display: 'block', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--t-accent)', marginBottom: '6px' }}>
+      <span className="block text-[10px] font-bold uppercase tracking-[0.07em] text-[var(--t-accent)] mb-[6px]">
         {label}
       </span>
-      <span style={{ fontSize: '13px', color: 'var(--t2)', lineHeight: 1.5 }}>
+      <span className="text-[13px] text-[var(--t2)] leading-[1.5]">
         {text}
       </span>
     </button>
