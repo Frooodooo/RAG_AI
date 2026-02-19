@@ -68,6 +68,63 @@ test('saveSessions trims sessions to MAX_SESSIONS', () => {
     assert.deepStrictEqual(parsed, manySessions.slice(0, MAX_SESSIONS))
 })
 
+test('saveSessions handles empty array', () => {
+    saveSessions([])
+    const stored = localStorage.getItem(SESSIONS_KEY)
+    assert.deepStrictEqual(JSON.parse(stored!), [])
+})
+
+test('saveSessions preserves complex object structure', () => {
+    const complexSession: ChatSession = {
+        id: 'complex-1',
+        title: 'Complex Session',
+        messages: [
+            {
+                role: 'user',
+                content: 'Hello',
+                timestamp: '2023-01-01T00:00:00.000Z',
+            },
+            {
+                role: 'ai',
+                content: 'Hi there',
+                timestamp: '2023-01-01T00:00:01.000Z',
+                sources: [
+                    {
+                        file: 'doc1.txt',
+                        excerpt: 'Some text',
+                        score: 0.9,
+                    },
+                ],
+            },
+        ],
+        createdAt: '2023-01-01T00:00:00.000Z',
+        updatedAt: '2023-01-01T00:00:01.000Z',
+    }
+
+    saveSessions([complexSession])
+
+    const stored = localStorage.getItem(SESSIONS_KEY)
+    const parsed = JSON.parse(stored!) as ChatSession[]
+    assert.deepStrictEqual(parsed[0], complexSession)
+})
+
+test('saveSessions propagates localStorage errors', () => {
+    const originalSetItem = localStorage.setItem
+    // Mock setItem to throw
+    localStorage.setItem = () => {
+        throw new Error('QuotaExceededError')
+    }
+
+    try {
+        assert.throws(() => saveSessions([]), {
+            message: 'QuotaExceededError'
+        })
+    } finally {
+        // Restore mock
+        localStorage.setItem = originalSetItem
+    }
+})
+
 test('loadSessions returns parsed sessions when valid JSON is present', () => {
     const mockSessions: ChatSession[] = [
         {
