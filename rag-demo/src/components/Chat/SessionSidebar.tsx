@@ -266,7 +266,7 @@ export default function SessionSidebar({
         : sessions
 
     return (
-        <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+        <aside className={`session-sidebar ${collapsed ? 'collapsed' : ''}`}>
             {/* ── Toggle + New Chat Row ── */}
             <div
                 className="flex items-center gap-2 px-2 py-2.5 shrink-0"
@@ -346,7 +346,7 @@ export default function SessionSidebar({
             </div>
 
             {/* ── Expanded content ── */}
-            <div className="sidebar-content">
+            <div className="session-sidebar-body">
                 {/* Search */}
                 {sessions.length > 3 && (
                     <div className="px-2 pt-2 pb-1">
