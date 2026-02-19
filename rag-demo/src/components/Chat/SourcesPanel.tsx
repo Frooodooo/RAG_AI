@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { useLocale } from '../../i18n'
 
 interface Source { file: string; excerpt: string; score: number }
 
-export default function SourcesPanel({ sources }: { sources: Source[] }) {
+function SourcesPanel({ sources }: { sources: Source[] }) {
   const { t } = useLocale()
   const [expanded, setExpanded] = useState(false)
 
@@ -95,3 +95,6 @@ export default function SourcesPanel({ sources }: { sources: Source[] }) {
     </div>
   )
 }
+
+// Memoized to prevent re-rendering when parent ChatPage updates
+export default memo(SourcesPanel)
