@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import type { Message } from '../../hooks/useChatSessions'
 
 // ── Inline markdown renderer ─────────────────────────────────────────────────
@@ -118,7 +118,7 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
 }
 
 // ── Main ChatMessage Component ────────────────────────────────────────────────
-export default function ChatMessage({ message }: { message: Message }) {
+function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user'
   const [copied, setCopied] = useState(false)
 
@@ -215,3 +215,6 @@ export default function ChatMessage({ message }: { message: Message }) {
     </div>
   )
 }
+
+// Memoized to prevent re-rendering all messages when the parent ChatPage updates (e.g. during typing animation)
+export default memo(ChatMessage)
