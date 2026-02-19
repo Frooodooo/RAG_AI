@@ -1,289 +1,220 @@
 import { useState } from 'react'
-import RigaLogo from '../RigaLogo'
 import type { Message } from '../../hooks/useChatSessions'
 
-interface ChatMessageProps {
-    message: Message
-}
-
-// ── Simple Markdown Renderer ─────────────────────────────────────────────────
-// No external dependency — handles the most common AI response patterns.
-
+// ── Inline markdown renderer ─────────────────────────────────────────────────
 function renderInline(text: string): React.ReactNode[] {
-    const parts = text.split(/(\*\*[^*\n]+?\*\*|\*[^*\n]+?\*|`[^`\n]+?`|~~[^~\n]+?~~)/g)
-    return parts.map((part, i) => {
-        if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-            return <strong key={i}>{part.slice(2, -2)}</strong>
-        }
-        if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
-            return <em key={i}>{part.slice(1, -1)}</em>
-        }
-        if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
-            return <code key={i} className="md-inline-code">{part.slice(1, -1)}</code>
-        }
-        if (part.startsWith('~~') && part.endsWith('~~') && part.length > 4) {
-            return <del key={i}>{part.slice(2, -2)}</del>
-        }
-        return <span key={i}>{part}</span>
-    })
+  const parts = text.split(/(\*\*[^*\n]+?\*\*|\*[^*\n]+?\*|`[^`\n]+?`|~~[^~\n]+?~~)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4)
+      return <strong key={i}>{part.slice(2, -2)}</strong>
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2)
+      return <em key={i}>{part.slice(1, -1)}</em>
+    if (part.startsWith('`') && part.endsWith('`') && part.length > 2)
+      return <code key={i} className="md-inline-code">{part.slice(1, -1)}</code>
+    if (part.startsWith('~~') && part.endsWith('~~') && part.length > 4)
+      return <del key={i}>{part.slice(2, -2)}</del>
+    return <span key={i}>{part}</span>
+  })
 }
 
 function renderMarkdown(text: string): React.ReactNode {
-    const lines = text.split('\n')
-    const elements: React.ReactNode[] = []
-    let i = 0
-    let key = 0
+  const lines = text.split('\n')
+  const elements: React.ReactNode[] = []
+  let i = 0
+  let key = 0
 
-    while (i < lines.length) {
-        const line = lines[i]
+  while (i < lines.length) {
+    const line = lines[i]
 
-        // ── Fenced code block ──────────────────────────────────────────────
-        if (line.startsWith('```')) {
-            const lang = line.slice(3).trim() || 'code'
-            const codeLines: string[] = []
-            i++
-            while (i < lines.length && !lines[i].startsWith('```')) {
-                codeLines.push(lines[i])
-                i++
-            }
-            i++ // skip closing ```
-            elements.push(<CodeBlock key={key++} lang={lang} code={codeLines.join('\n')} />)
-            continue
-        }
-
-        // ── Headings ───────────────────────────────────────────────────────
-        const h3 = line.match(/^###\s+(.+)$/)
-        const h2 = line.match(/^##\s+(.+)$/)
-        const h1 = line.match(/^#\s+(.+)$/)
-        if (h3) { elements.push(<h3 key={key++} className="md-h3">{renderInline(h3[1])}</h3>); i++; continue }
-        if (h2) { elements.push(<h2 key={key++} className="md-h2">{renderInline(h2[1])}</h2>); i++; continue }
-        if (h1) { elements.push(<h1 key={key++} className="md-h1">{renderInline(h1[1])}</h1>); i++; continue }
-
-        // ── Horizontal rule ────────────────────────────────────────────────
-        if (/^(-{3,}|_{3,}|\*{3,})$/.test(line.trim())) {
-            elements.push(<hr key={key++} className="md-hr" />)
-            i++; continue
-        }
-
-        // ── Unordered list ─────────────────────────────────────────────────
-        if (/^[-*+•]\s/.test(line)) {
-            const items: string[] = []
-            while (i < lines.length && /^[-*+•]\s/.test(lines[i])) {
-                items.push(lines[i].replace(/^[-*+•]\s/, ''))
-                i++
-            }
-            elements.push(
-                <ul key={key++} className="md-ul">
-                    {items.map((item, idx) => <li key={idx}>{renderInline(item)}</li>)}
-                </ul>
-            )
-            continue
-        }
-
-        // ── Ordered list ──────────────────────────────────────────────────
-        if (/^\d+\.\s/.test(line)) {
-            const items: string[] = []
-            while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-                items.push(lines[i].replace(/^\d+\.\s/, ''))
-                i++
-            }
-            elements.push(
-                <ol key={key++} className="md-ol">
-                    {items.map((item, idx) => <li key={idx}>{renderInline(item)}</li>)}
-                </ol>
-            )
-            continue
-        }
-
-        // ── Blockquote ─────────────────────────────────────────────────────
-        if (line.startsWith('> ')) {
-            const bqLines: string[] = []
-            while (i < lines.length && lines[i].startsWith('> ')) {
-                bqLines.push(lines[i].slice(2))
-                i++
-            }
-            elements.push(
-                <blockquote key={key++} className="md-blockquote">
-                    {bqLines.map((l, idx) => <p key={idx}>{renderInline(l)}</p>)}
-                </blockquote>
-            )
-            continue
-        }
-
-        // ── Empty line ─────────────────────────────────────────────────────
-        if (line.trim() === '') { i++; continue }
-
-        // ── Paragraph ──────────────────────────────────────────────────────
-        const paraLines: string[] = []
-        while (
-            i < lines.length &&
-            lines[i].trim() !== '' &&
-            !lines[i].startsWith('```') &&
-            !/^#{1,3}\s/.test(lines[i]) &&
-            !/^[-*+•]\s/.test(lines[i]) &&
-            !/^\d+\.\s/.test(lines[i]) &&
-            !lines[i].startsWith('> ') &&
-            !/^(-{3,}|_{3,}|\*{3,})$/.test(lines[i].trim())
-        ) {
-            paraLines.push(lines[i])
-            i++
-        }
-        if (paraLines.length > 0) {
-            elements.push(
-                <p key={key++} className="md-p">
-                    {paraLines.flatMap((pl, idx) => [
-                        ...(idx > 0 ? [<br key={`br-${idx}`} />] : []),
-                        ...renderInline(pl),
-                    ])}
-                </p>
-            )
-        }
+    if (line.startsWith('```')) {
+      const lang = line.slice(3).trim() || 'code'
+      const codeLines: string[] = []
+      i++
+      while (i < lines.length && !lines[i].startsWith('```')) { codeLines.push(lines[i]); i++ }
+      i++
+      elements.push(<CodeBlock key={key++} lang={lang} code={codeLines.join('\n')} />)
+      continue
     }
 
-    return <div className="md-body">{elements}</div>
+    const h3 = line.match(/^###\s+(.+)$/); const h2 = line.match(/^##\s+(.+)$/); const h1 = line.match(/^#\s+(.+)$/)
+    if (h3) { elements.push(<h3 key={key++} className="md-h3">{renderInline(h3[1])}</h3>); i++; continue }
+    if (h2) { elements.push(<h2 key={key++} className="md-h2">{renderInline(h2[1])}</h2>); i++; continue }
+    if (h1) { elements.push(<h1 key={key++} className="md-h1">{renderInline(h1[1])}</h1>); i++; continue }
+
+    if (/^(-{3,}|_{3,}|\*{3,})$/.test(line.trim())) {
+      elements.push(<hr key={key++} className="md-hr" />); i++; continue
+    }
+
+    if (/^[-*+•]\s/.test(line)) {
+      const items: string[] = []
+      while (i < lines.length && /^[-*+•]\s/.test(lines[i])) { items.push(lines[i].replace(/^[-*+•]\s/, '')); i++ }
+      elements.push(<ul key={key++} className="md-ul">{items.map((item, idx) => <li key={idx}>{renderInline(item)}</li>)}</ul>)
+      continue
+    }
+
+    if (/^\d+\.\s/.test(line)) {
+      const items: string[] = []
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) { items.push(lines[i].replace(/^\d+\.\s/, '')); i++ }
+      elements.push(<ol key={key++} className="md-ol">{items.map((item, idx) => <li key={idx}>{renderInline(item)}</li>)}</ol>)
+      continue
+    }
+
+    if (line.startsWith('> ')) {
+      const bqLines: string[] = []
+      while (i < lines.length && lines[i].startsWith('> ')) { bqLines.push(lines[i].slice(2)); i++ }
+      elements.push(
+        <blockquote key={key++} className="md-blockquote">
+          {bqLines.map((l, idx) => <p key={idx}>{renderInline(l)}</p>)}
+        </blockquote>
+      )
+      continue
+    }
+
+    if (line.trim() === '') { i++; continue }
+
+    const paraLines: string[] = []
+    while (
+      i < lines.length && lines[i].trim() !== '' &&
+      !lines[i].startsWith('```') && !/^#{1,3}\s/.test(lines[i]) &&
+      !/^[-*+•]\s/.test(lines[i]) && !/^\d+\.\s/.test(lines[i]) &&
+      !lines[i].startsWith('> ') && !/^(-{3,}|_{3,}|\*{3,})$/.test(lines[i].trim())
+    ) { paraLines.push(lines[i]); i++ }
+
+    if (paraLines.length > 0) {
+      elements.push(
+        <p key={key++} className="md-p">
+          {paraLines.flatMap((pl, idx) => [
+            ...(idx > 0 ? [<br key={`br-${idx}`} />] : []),
+            ...renderInline(pl),
+          ])}
+        </p>
+      )
+    }
+  }
+
+  return <div className="md-body">{elements}</div>
 }
 
-// ── Code Block with Copy ─────────────────────────────────────────────────────
+// ── Code Block ───────────────────────────────────────────────────────────────
 function CodeBlock({ lang, code }: { lang: string; code: string }) {
-    const [copied, setCopied] = useState(false)
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(code).then(() => {
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-        })
-    }
-
-    return (
-        <div className="md-code-block">
-            <div className="md-code-header">
-                <span className="md-code-lang">{lang}</span>
-                <button className="md-copy-btn" onClick={handleCopy} title="Copy code">
-                    {copied ? (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                    ) : (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                    )}
-                    {copied ? 'Copied!' : 'Copy'}
-                </button>
-            </div>
-            <pre className="md-code-pre"><code>{code}</code></pre>
-        </div>
-    )
+  const [copied, setCopied] = useState(false)
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+  return (
+    <div className="md-code-block">
+      <div className="md-code-header">
+        <span className="md-code-lang">{lang}</span>
+        <button className="md-copy-btn" onClick={handleCopy}>
+          {copied
+            ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+            : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
+      <pre className="md-code-pre"><code>{code}</code></pre>
+    </div>
+  )
 }
 
 // ── Main ChatMessage Component ────────────────────────────────────────────────
-export default function ChatMessage({ message }: ChatMessageProps) {
-    const isUser = message.role === 'user'
-    const [copied, setCopied] = useState(false)
+export default function ChatMessage({ message }: { message: Message }) {
+  const isUser = message.role === 'user'
+  const [copied, setCopied] = useState(false)
 
-    const time = new Date(message.timestamp).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-    })
+  const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
-    const handleCopyMessage = () => {
-        navigator.clipboard.writeText(message.content).then(() => {
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-        })
-    }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
 
-    if (isUser) {
-        // User messages: right-aligned bubble
-        return (
-            <div className="flex justify-end mb-5 group">
-                <div className="flex flex-col items-end" style={{ maxWidth: '78%' }}>
-                    <div
-                        className="px-4 py-3 rounded-2xl rounded-tr-sm"
-                        style={{
-                            background: 'var(--accent-primary)',
-                            color: 'white',
-                            fontSize: '14px',
-                            lineHeight: '1.65',
-                            whiteSpace: 'pre-wrap',
-                            fontFamily: 'var(--font-sans)',
-                        }}
-                    >
-                        {message.content}
-                    </div>
-                    {/* Timestamp + copy */}
-                    <div className="flex items-center gap-2 mt-1.5 px-1 flex-row-reverse">
-                        <span className="text-[11px] select-none" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
-                            {time}
-                        </span>
-                        <button
-                            onClick={handleCopyMessage}
-                            className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded transition-all opacity-0 group-hover:opacity-60 hover:!opacity-100"
-                            style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-                            title="Copy message"
-                        >
-                            {copied ? (
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                            ) : (
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                            )}
-                            {copied ? 'Copied' : 'Copy'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    // AI messages: full-width with avatar on left — properly centered in container
+  /* ── User message ── */
+  if (isUser) {
     return (
-        <div className="flex items-start gap-3 mb-6 group w-full">
-            {/* AI Avatar */}
-            <div
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{
-                    background: 'rgba(13,148,136,0.12)',
-                    border: '1px solid rgba(13,148,136,0.25)',
-                }}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }} className="group">
+        <div style={{ maxWidth: '75%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          <div style={{
+            padding: '11px 16px',
+            borderRadius: '18px 18px 4px 18px',
+            background: 'linear-gradient(135deg, var(--accent) 0%, #7160fd 100%)',
+            color: 'white',
+            fontSize: '14px',
+            lineHeight: 1.65,
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'var(--font)',
+            boxShadow: '0 2px 16px rgba(93,107,254,0.3)',
+          }}>
+            {message.content}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', padding: '0 4px', flexDirection: 'row-reverse' }}>
+            <span style={{ fontSize: '11px', color: 'var(--t3)', opacity: 0.7 }}>{time}</span>
+            <button
+              onClick={handleCopy}
+              className="group-hover:opacity-60 hover:!opacity-100"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '4px',
+                fontSize: '11px', padding: '2px 6px', borderRadius: 'var(--r-xs)',
+                color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer',
+                opacity: 0, transition: 'opacity 150ms',
+              }}
+              title="Copy"
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '0'; e.currentTarget.style.background = 'none' }}
             >
-                <RigaLogo size={17} />
-            </div>
-
-            {/* AI Content — takes full remaining width */}
-            <div className="flex-1 min-w-0">
-                {renderMarkdown(message.content)}
-
-                {/* Meta row */}
-                <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[11px] select-none" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
-                        {time}
-                    </span>
-                    <button
-                        onClick={handleCopyMessage}
-                        className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded transition-all opacity-0 group-hover:opacity-60 hover:!opacity-100"
-                        style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-                        title="Copy message"
-                    >
-                        {copied ? (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        ) : (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        )}
-                        {copied ? 'Copied' : 'Copy'}
-                    </button>
-                </div>
-            </div>
+              {copied
+                ? <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                : <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
         </div>
+      </div>
     )
+  }
+
+  /* ── AI message ── */
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">
+      {/* Avatar */}
+      <div style={{
+        width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0, marginTop: '2px',
+        background: 'linear-gradient(135deg, rgba(93,107,254,0.22) 0%, rgba(167,139,250,0.15) 100%)',
+        border: '1px solid rgba(93,107,254,0.28)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" strokeWidth="1.8">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {renderMarkdown(message.content)}
+
+        {/* Meta */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+          <span style={{ fontSize: '11px', color: 'var(--t3)', opacity: 0.6 }}>{time}</span>
+          <button
+            onClick={handleCopy}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              fontSize: '11px', padding: '2px 6px', borderRadius: 'var(--r-xs)',
+              color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer',
+              opacity: 0, transition: 'opacity 150ms, background 150ms',
+            }}
+            title="Copy"
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '0'; e.currentTarget.style.background = 'none' }}
+          >
+            {copied
+              ? <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+              : <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }

@@ -8,116 +8,121 @@ import DocumentsPage from './components/Documents/DocumentsPage'
 
 type Tab = 'chat' | 'workflow' | 'documents'
 
+const NAV_ITEMS: { id: Tab; labelKey: string; icon: React.ReactNode }[] = [
+  {
+    id: 'chat',
+    labelKey: 'nav.chat',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'workflow',
+    labelKey: 'nav.workflow',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+      </svg>
+    ),
+  },
+  {
+    id: 'documents',
+    labelKey: 'nav.documents',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+      </svg>
+    ),
+  },
+]
+
 function App() {
   const { locale, setLocale, t } = useLocale()
   const [activeTab, setActiveTab] = useState<Tab>('chat')
   const [isChatProcessing, setIsChatProcessing] = useState(false)
-  const [health, setHealth] = useState<{
-    qdrant: string
-    ollama: string
-    n8n: string
-  } | null>(null)
+  const [health, setHealth] = useState<{ qdrant: string; ollama: string; n8n: string } | null>(null)
 
   useEffect(() => {
-    getHealth()
-      .then(setHealth)
-      .catch(() => setHealth(null))
+    getHealth().then(setHealth).catch(() => setHealth(null))
   }, [])
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    {
-      id: 'chat',
-      label: t('nav.chat') as string,
-      icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-      ),
-    },
-    {
-      id: 'workflow',
-      label: t('nav.workflow') as string,
-      icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
-        </svg>
-      ),
-    },
-    {
-      id: 'documents',
-      label: t('nav.documents') as string,
-      icon: (
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="16" y1="13" x2="8" y2="13" />
-          <line x1="16" y1="17" x2="8" y2="17" />
-          <polyline points="10 9 9 9 8 9" />
-        </svg>
-      ),
-    },
-  ]
-
   return (
-    <div className="flex flex-col h-screen" style={{ background: 'var(--bg-primary)' }}>
-      {/* ===== Header ===== */}
-      <header
-        className="flex items-center justify-between shrink-0"
-        style={{
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--bg-secondary)',
-          padding: '12px 20px',
-          minHeight: '64px',
-        }}
-      >
-        {/* Logo & Title */}
-        <div className="flex items-center gap-3.5 min-w-0">
-          <RigaLogo size={40} />
-          <div className="min-w-0">
-            <h1
-              className="font-bold leading-tight truncate"
-              style={{ color: 'var(--text-primary)', fontSize: '16px', letterSpacing: '-0.02em' }}
-            >
-              {t('header.title') as string}
-            </h1>
-            <p className="text-xs leading-tight mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              {t('header.subtitle') as string}
-            </p>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-0)' }}>
+
+      {/* ══════════ Left Navigation Rail ══════════ */}
+      <nav className="nav-rail">
+        {/* Logo */}
+        <div style={{ marginBottom: '4px' }}>
+          <div
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: 'var(--r-md)',
+              background: 'rgba(93,107,254,0.12)',
+              border: '1px solid rgba(93,107,254,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 20px rgba(93,107,254,0.12)',
+            }}
+          >
+            <RigaLogo size={22} />
           </div>
         </div>
 
-        {/* Tab Navigation — centered */}
-        <nav className="tab-nav">
-          {tabs.map((tab) => (
+        <div className="nav-divider" />
+
+        {/* Nav Buttons */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', width: '100%', alignItems: 'center' }}>
+          {NAV_ITEMS.map((item) => (
             <button
-              key={tab.id}
-              className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
+              key={item.id}
+              className={`nav-btn ${activeTab === item.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(item.id)}
+              title={t(item.labelKey as any) as string}
             >
-              {tab.icon}
-              <span>{tab.label}</span>
+              {item.icon}
+              <span className="tooltip">{t(item.labelKey as any) as string}</span>
             </button>
           ))}
-        </nav>
+        </div>
 
-        {/* Right side: Language + Health */}
-        <div className="flex items-center gap-5">
-          {/* Language Toggle */}
-          <div
-            className="flex items-center rounded-lg overflow-hidden"
-            style={{ border: '1px solid var(--border-subtle)' }}
-          >
+        {/* Bottom: Language + Health */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '10px',
+          paddingTop: '10px',
+          borderTop: '1px solid var(--b1)',
+          width: '100%',
+        }}>
+          {/* Language switcher */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
             {(['lv', 'en'] as Locale[]).map((lang) => (
               <button
                 key={lang}
                 onClick={() => setLocale(lang)}
-                className="px-3.5 py-2 text-xs font-bold transition-all cursor-pointer uppercase tracking-wide"
                 style={{
-                  background: locale === lang ? 'var(--accent-primary)' : 'transparent',
-                  color: locale === lang ? 'white' : 'var(--text-muted)',
+                  padding: '4px 7px',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  borderRadius: 'var(--r-sm)',
                   border: 'none',
-                  minWidth: '40px',
+                  cursor: 'pointer',
+                  background: locale === lang ? 'var(--accent)' : 'transparent',
+                  color: locale === lang ? 'white' : 'var(--t3)',
+                  transition: 'all var(--tf) var(--ease)',
+                  fontFamily: 'var(--font)',
+                  boxShadow: locale === lang ? '0 1px 6px var(--accent-glow)' : 'none',
                 }}
               >
                 {lang}
@@ -125,42 +130,97 @@ function App() {
             ))}
           </div>
 
-          {/* Service Health */}
-          <div className="flex items-center gap-4">
-            <StatusIndicator label="Ollama" status={health?.ollama} />
-            <StatusIndicator label="Qdrant" status={health?.qdrant} />
-            <StatusIndicator label="n8n" status={health?.n8n} />
+          {/* Service health indicators */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', alignItems: 'center' }}>
+            <HealthPip label="AI" status={health?.ollama} />
+            <HealthPip label="DB" status={health?.qdrant} />
+            <HealthPip label="n8n" status={health?.n8n} />
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* ===== Content ===== */}
-      <main className="flex-1 overflow-hidden">
+      {/* ══════════ Main Content Area ══════════ */}
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {activeTab === 'chat' && (
           <ChatPage onProcessingChange={setIsChatProcessing} />
         )}
+
         {activeTab === 'workflow' && (
-          <WorkflowVisualizer isActive={isChatProcessing} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Workflow header */}
+            <div style={{
+              padding: '14px 20px',
+              borderBottom: '1px solid var(--b1)',
+              background: 'var(--bg-1)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              flexShrink: 0,
+            }}>
+              <div style={{
+                width: '28px', height: '28px',
+                borderRadius: 'var(--r-sm)',
+                background: 'var(--accent-dim)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--accent-2)',
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+                </svg>
+              </div>
+              <div>
+                <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.01em' }}>
+                  {t('wf.title') as string}
+                </h2>
+                <p style={{ fontSize: '12px', color: 'var(--t3)', marginTop: '1px' }}>
+                  {t('wf.description') as string}
+                </p>
+              </div>
+
+              {isChatProcessing && (
+                <div style={{
+                  marginLeft: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '5px 12px',
+                  borderRadius: 'var(--r-md)',
+                  background: 'var(--accent-dim)',
+                  border: '1px solid rgba(93,107,254,0.2)',
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-2)' }}>
+                    Processing
+                  </span>
+                  <span className="typing-dots">
+                    <span /><span /><span />
+                  </span>
+                </div>
+              )}
+            </div>
+            <WorkflowVisualizer isActive={isChatProcessing} />
+          </div>
         )}
+
         {activeTab === 'documents' && <DocumentsPage />}
-      </main>
+      </div>
     </div>
   )
 }
 
-function StatusIndicator({ label, status }: { label: string; status?: string }) {
+/* Compact health pip for the nav rail */
+function HealthPip({ label, status }: { label: string; status?: string }) {
   const isOk = status === 'ok'
-  const isUnknown = status === undefined || status === null
+  const isUnknown = status == null
+  const dotClass = isUnknown ? 'dot dot-gray' : isOk ? 'dot dot-green' : 'dot dot-red'
 
   return (
     <div
-      className="flex items-center gap-2"
       title={`${label}: ${status ?? 'unknown'}`}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'default' }}
     >
-      <div
-        className={`status-dot ${isUnknown ? 'unknown' : isOk ? 'online' : 'offline'}`}
-      />
-      <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+      <div className={dotClass} />
+      <span style={{ fontSize: '9px', color: 'var(--t3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {label}
       </span>
     </div>
