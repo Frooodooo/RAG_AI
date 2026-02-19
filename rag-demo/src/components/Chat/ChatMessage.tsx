@@ -150,16 +150,14 @@ export default function ChatMessage({ message }: { message: Message }) {
             <span style={{ fontSize: '11px', color: 'var(--t3)', opacity: 0.7 }}>{time}</span>
             <button
               onClick={handleCopy}
-              className="group-hover:opacity-60 hover:!opacity-100"
+              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 hover:bg-[rgba(255,255,255,0.06)]"
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 fontSize: '11px', padding: '2px 6px', borderRadius: 'var(--r-xs)',
                 color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer',
-                opacity: 0, transition: 'opacity 150ms',
               }}
               title="Copy"
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = '0'; e.currentTarget.style.background = 'none' }}
+              aria-label="Copy user message"
             >
               {copied
                 ? <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
@@ -198,15 +196,14 @@ export default function ChatMessage({ message }: { message: Message }) {
           <span style={{ fontSize: '11px', color: 'var(--t3)', opacity: 0.6 }}>{time}</span>
           <button
             onClick={handleCopy}
+            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 hover:bg-[rgba(255,255,255,0.05)]"
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               fontSize: '11px', padding: '2px 6px', borderRadius: 'var(--r-xs)',
               color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer',
-              opacity: 0, transition: 'opacity 150ms, background 150ms',
             }}
             title="Copy"
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = '0'; e.currentTarget.style.background = 'none' }}
+            aria-label="Copy AI response"
           >
             {copied
               ? <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
