@@ -46,19 +46,27 @@ db.exec(`
 `);
 
 // ─── Text extraction ──────────────────────────────────────────────────────────
-async function extractText(buffer, mimeType) {
+async function extractText(buffer, mimeType, filename) {
+  // Use file extension as fallback when mimeType is generic/missing
+  const ext = (filename || '').split('.').pop()?.toLowerCase() || '';
+
   try {
-    if ((mimeType === 'application/pdf' || mimeType.includes('pdf')) && pdfParse) {
+    // PDF
+    if ((mimeType.includes('pdf') || ext === 'pdf') && pdfParse) {
       const parsed = await pdfParse(buffer);
       return parsed.text || '';
     }
 
-    if (mimeType.includes('wordprocessingml') && mammoth) {
+    // DOCX / Word (legacy .doc not supported without extra lib)
+    if ((mimeType.includes('wordprocessingml') || mimeType.includes('msword') ||
+         ext === 'docx' || ext === 'doc') && mammoth) {
       const result = await mammoth.extractRawText({ buffer });
       return result.value || '';
     }
 
-    if ((mimeType.includes('spreadsheetml') || mimeType.includes('xlsx')) && XLSX) {
+    // XLSX / Excel (both modern .xlsx and legacy .xls)
+    if ((mimeType.includes('spreadsheetml') || mimeType.includes('xlsx') ||
+         mimeType.includes('ms-excel') || ext === 'xlsx' || ext === 'xls') && XLSX) {
       const wb = XLSX.read(buffer, { type: 'buffer' });
       return wb.SheetNames.map(name => {
         const ws = wb.Sheets[name];
@@ -66,9 +74,19 @@ async function extractText(buffer, mimeType) {
       }).join('\n\n');
     }
 
-    // Plain text / fallback
-    if (mimeType.startsWith('text/')) {
+    // Plain text variants: TXT, CSV, Markdown, JSON, XML, HTML
+    if (mimeType.startsWith('text/') ||
+        ['txt', 'csv', 'md', 'markdown', 'json', 'xml', 'html', 'htm'].includes(ext)) {
       return buffer.toString('utf-8');
+    }
+
+    // Last resort: try UTF-8 decode for any remaining types
+    if (ext && !['pdf', 'docx', 'doc', 'xlsx', 'xls'].includes(ext)) {
+      const text = buffer.toString('utf-8');
+      // Only return if it looks like actual text (not binary garbage)
+      if (text.split('').filter(c => c.charCodeAt(0) < 32 && c !== '\n' && c !== '\r' && c !== '\t').length / text.length < 0.1) {
+        return text;
+      }
     }
   } catch (err) {
     console.error('[extract]', err.message);
@@ -138,7 +156,7 @@ app.post('/docs/register', async (req, res) => {
   }
 
   // ── Extract text ──
-  const extractedText = await extractText(buffer, mimeType || '');
+  const extractedText = await extractText(buffer, mimeType || '', filename);
 
   // ── Register ──
   const id = crypto.randomUUID();
@@ -176,26 +194,19 @@ app.post('/docs/register', async (req, res) => {
 
 // ─── GET /docs/:id/download ───────────────────────────────────────────────────
 app.get('/docs/:id/download', (req, res) => {
-  const doc = db.prepare('SELECT filename, id FROM documents WHERE id = ?').get(req.params.id);
+  const doc = db.prepare('SELECT filename, id, mime_type FROM documents WHERE id = ?').get(req.params.id);
   if (!doc) return res.status(404).json({ error: 'Not found' });
 
-  // 1. Try to find in uploads/ (User uploaded)
+  // 1. Try to find in uploads/ (user uploaded via UI)
   let filePath = path.join(DATA_DIR, 'uploads', doc.id);
 
-  // 2. If not found, check if it exists in a scraped-docs folder (Manual ingestion)
-  // This is a bit hacky because doc-server doesn't track absolute path of ingested files
-  // But we can check if a file with same NAME exists in known locations?
-  // Or check if we have a 'path' column? (We don't).
-
+  // 2. Fallback: check ../scraped-docs/filename (manual ingestion)
   if (!fs.existsSync(filePath)) {
-    // Fallback: check ../scraped-docs/filename
-    // Valid only if running locally or if mounted volume matches
     const scrapedPath = path.resolve(__dirname, '..', 'scraped-docs', doc.filename);
     if (fs.existsSync(scrapedPath)) {
       filePath = scrapedPath;
-    } else {
-      // Fallback 2: maybe in current dir?
-      if (fs.existsSync(doc.filename)) filePath = doc.filename;
+    } else if (fs.existsSync(doc.filename)) {
+      filePath = doc.filename;
     }
   }
 
@@ -203,7 +214,17 @@ app.get('/docs/:id/download', (req, res) => {
     return res.status(404).json({ error: 'File content not found on server disk' });
   }
 
-  res.download(filePath, doc.filename);
+  // Set explicit Content-Type so browsers know how to handle the file
+  if (doc.mime_type) {
+    res.setHeader('Content-Type', doc.mime_type);
+  }
+
+  res.download(filePath, doc.filename, (err) => {
+    if (err && !res.headersSent) {
+      console.error('[download] Error sending file:', err.message);
+      res.status(500).json({ error: 'Download failed' });
+    }
+  });
 });
 
 // ─── GET /docs ────────────────────────────────────────────────────────────────
@@ -259,7 +280,9 @@ app.delete('/docs/:id', async (req, res) => {
   if (!doc) return res.status(404).json({ error: 'Not found' });
 
   try {
-    const qdrantUrl = process.env.QDRANT_URL || 'http://localhost:6333';
+    // Use QDRANT_URL env var; default to host.docker.internal for Docker deployments
+    // Set QDRANT_URL=http://localhost:6333 when running doc-server natively (non-Docker)
+    const qdrantUrl = process.env.QDRANT_URL || 'http://host.docker.internal:6333';
     const collectionName = 'rag_docs';
 
     console.log(`[delete] Removing vectors for doc ${docId} from Qdrant...`);
