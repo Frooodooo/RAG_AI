@@ -1,7 +1,13 @@
 const { randomUUID } = require('crypto');
 
-const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNTg0NGEwZC1hZDBiLTRmZGUtYmJlYy02OTAwZTYyZWQwN2QiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiM2IxYzBlMzgtYjU0MC00Y2MyLWEwN2YtZWFmZmVmMWI0ZjNjIiwiaWF0IjoxNzcxNDM4ODQ2LCJleHAiOjE3NzM5NTc2MDB9.Uvc93QLI1p8z7PNVjeI2e63aMakI7LsjBB9EZxhhAUQ';
-const BASE = 'http://localhost:5678/api/v1';
+const API_KEY = process.env.N8N_API_KEY;
+const BASE = process.env.N8N_BASE_URL || 'http://localhost:5678/api/v1';
+
+if (!API_KEY) {
+    console.error('Error: N8N_API_KEY environment variable is not set.');
+    process.exit(1);
+}
+
 const headers = { 'X-N8N-API-KEY': API_KEY, 'Content-Type': 'application/json' };
 
 async function deleteAll() {
