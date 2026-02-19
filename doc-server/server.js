@@ -109,8 +109,30 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '64mb' }));
 
-// GET /health
-app.get('/health', (_req, res) => res.json({ ok: true, db: DB_PATH }));
+// GET /health — checks Qdrant, Ollama, n8n and returns unified status
+app.get('/health', async (_req, res) => {
+  const qdrantUrl = process.env.QDRANT_URL || 'http://localhost:6333';
+  const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+
+  let qdrant = 'error', ollama = 'error', n8n = 'error';
+
+  try {
+    const r = await fetch(`${qdrantUrl}/collections`, { signal: AbortSignal.timeout(3000) });
+    if (r.ok) qdrant = 'ok';
+  } catch (_) {}
+
+  try {
+    const r = await fetch(`${ollamaUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
+    if (r.ok) ollama = 'ok';
+  } catch (_) {}
+
+  try {
+    const r = await fetch('http://localhost:5678/healthz', { signal: AbortSignal.timeout(3000) });
+    if (r.ok) n8n = 'ok';
+  } catch (_) {}
+
+  res.json({ ok: true, db: DB_PATH, qdrant, ollama, n8n });
+});
 
 // ─── POST /docs/register ──────────────────────────────────────────────────────
 // Body: { filename, fileBase64, mimeType }
@@ -364,6 +386,163 @@ app.post('/docs/search', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ─── Background embed + Qdrant insert ────────────────────────────────────────
+async function embedAndIndex(docId, filename, extractedText) {
+  const qdrantUrl = process.env.QDRANT_URL || 'http://localhost:6333';
+  const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+  const EMBED_MODEL = process.env.EMBED_MODEL || 'nomic-embed-text-v2-moe';
+  const CHUNK_SIZE = 500;
+  const OVERLAP = 50;
+  const COLLECTION = 'rag_docs';
+
+  if (!extractedText || extractedText.trim().length < 10) {
+    db.prepare('UPDATE documents SET status=?, error_message=? WHERE id=?')
+      .run('error', 'No extractable text found. The document may be image-based, encrypted, or empty.', docId);
+    return;
+  }
+
+  // Chunk text
+  const chunks = [];
+  for (let pos = 0; pos < extractedText.length; pos += (CHUNK_SIZE - OVERLAP)) {
+    const text = extractedText.slice(pos, pos + CHUNK_SIZE).trim();
+    if (text.length >= 20) chunks.push(text);
+  }
+  const capped = chunks.slice(0, 200);
+
+  // Ensure Qdrant collection exists (PUT is idempotent)
+  try {
+    await fetch(`${qdrantUrl}/collections/${COLLECTION}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vectors: { size: 768, distance: 'Cosine' } }),
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch (e) {
+    console.error('[embed] Qdrant collection create error:', e.message);
+  }
+
+  // Generate embeddings
+  const points = [];
+  for (let i = 0; i < capped.length; i++) {
+    try {
+      const resp = await fetch(`${ollamaUrl}/api/embeddings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: EMBED_MODEL, prompt: capped[i] }),
+        signal: AbortSignal.timeout(30000),
+      });
+      const data = await resp.json();
+      if (data.embedding && data.embedding.length > 0) {
+        points.push({
+          id: Date.now() + i,
+          vector: data.embedding,
+          payload: { text: capped[i], doc_id: docId, filename, chunk_index: i },
+        });
+      }
+    } catch (e) {
+      console.error(`[embed] chunk ${i} error:`, e.message);
+    }
+  }
+
+  if (points.length > 0) {
+    try {
+      await fetch(`${qdrantUrl}/collections/${COLLECTION}/points`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ points }),
+        signal: AbortSignal.timeout(60000),
+      });
+      db.prepare('UPDATE documents SET status=?, chunks=?, error_message=NULL, indexed_at=? WHERE id=?')
+        .run('ready', capped.length, new Date().toISOString(), docId);
+      console.log(`[embed] ${docId}: ${points.length} vectors inserted`);
+    } catch (e) {
+      console.error('[embed] Qdrant insert error:', e.message);
+      db.prepare('UPDATE documents SET status=?, error_message=? WHERE id=?')
+        .run('error', `Qdrant insert failed: ${e.message}`, docId);
+    }
+  } else {
+    db.prepare('UPDATE documents SET status=?, chunks=?, error_message=? WHERE id=?')
+      .run('error', capped.length, 'Embedding failed. Ensure the Ollama embedding model is running.', docId);
+  }
+}
+
+// ─── POST /upload ─────────────────────────────────────────────────────────────
+// Direct upload endpoint — registers doc + triggers background embedding locally.
+// Used by the Vite proxy to bypass n8n's Docker-networking /webhook/upload.
+// Body: { filename, fileBase64, mimeType }
+app.post('/upload', async (req, res) => {
+  const { filename, fileBase64, mimeType } = req.body || {};
+  if (!filename || !fileBase64) {
+    return res.status(400).json({ error: 'filename and fileBase64 are required' });
+  }
+
+  let buffer;
+  try {
+    buffer = Buffer.from(fileBase64, 'base64');
+  } catch {
+    return res.status(400).json({ error: 'Invalid base64 data' });
+  }
+
+  const hash = crypto.createHash('sha256').update(buffer).digest('hex');
+
+  // Duplicate check
+  const existing = db
+    .prepare('SELECT id, filename, status, chunks, collection FROM documents WHERE file_hash = ?')
+    .get(hash);
+
+  if (existing) {
+    // Backfill missing file if needed
+    const existingPath = path.join(DATA_DIR, 'uploads', existing.id);
+    if (!fs.existsSync(existingPath)) {
+      fs.mkdirSync(path.join(DATA_DIR, 'uploads'), { recursive: true });
+      fs.writeFileSync(existingPath, buffer);
+    }
+    return res.json({
+      duplicate: true,
+      id: existing.id,
+      filename: existing.filename,
+      status: existing.status,
+      processing: false,
+      message: 'Document already indexed',
+    });
+  }
+
+  // Extract text
+  const extractedText = await extractText(buffer, mimeType || '', filename);
+
+  // Register in DB
+  const id = crypto.randomUUID();
+  const collection = toCollectionName(filename);
+  const uploadedAt = new Date().toISOString();
+
+  // Save raw file
+  const savePath = path.join(DATA_DIR, 'uploads', id);
+  fs.mkdirSync(path.join(DATA_DIR, 'uploads'), { recursive: true });
+  fs.writeFileSync(savePath, buffer);
+
+  db.prepare(`
+    INSERT INTO documents (id, filename, file_hash, mime_type, file_size, status, collection, uploaded_at)
+    VALUES (?, ?, ?, ?, ?, 'processing', ?, ?)
+  `).run(id, filename, hash, mimeType || '', buffer.length, collection, uploadedAt);
+
+  if (extractedText.trim().length > 0) {
+    db.prepare('INSERT INTO doc_fts (doc_id, text) VALUES (?, ?)').run(id, extractedText);
+  }
+
+  // Respond immediately — embedding runs in background
+  res.json({
+    success: true,
+    processing: true,
+    id,
+    filename,
+    collection,
+    message: 'Document received – indexing in background',
+  });
+
+  // Background embed (non-blocking)
+  setImmediate(() => embedAndIndex(id, filename, extractedText).catch(console.error));
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────

@@ -129,9 +129,12 @@ export async function getExecution(executionId: string): Promise<N8nExecution> {
     return data;
 }
 
-/** GET /webhook/health → {qdrant, ollama, n8n} */
+/** GET /webhook/health → {qdrant, ollama, n8n}
+ *  Proxied by Vite to doc-server /health which checks all services locally.
+ */
 export async function getHealth() {
     const { data } = await api.get<{
+        ok: boolean;
         qdrant: string;
         ollama: string;
         n8n: string;

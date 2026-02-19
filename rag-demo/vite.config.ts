@@ -22,6 +22,20 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,  // allow Cloudflare tunnel hostnames (*.trycloudflare.com)
       port: 3000,
       proxy: {
+        // ── Specific webhook overrides (must come before the generic /webhook rule) ──
+        // Route upload + health directly to doc-server, bypassing n8n's
+        // Docker-networking issues (host.docker.internal not always resolvable).
+        '/webhook/upload': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+          rewrite: (_p) => '/upload',
+        },
+        '/webhook/health': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+          rewrite: (_p) => '/health',
+        },
+        // ── Generic n8n webhook proxy (chat, etc.) ──
         '/webhook': {
           target: 'http://localhost:5678',
           changeOrigin: true,
