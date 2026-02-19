@@ -20,8 +20,10 @@ export async function sendChat(message: string, sessionId: string) {
     return data;
 }
 
-/** POST /webhook/upload → upload doc as base64 JSON (NOT multipart — n8n bug #14876)
- *  Returns immediately with {id, processing: true} while n8n indexes in background.
+/** POST /doc-api/upload → upload doc as base64 JSON
+ *  Goes directly to doc-server (bypasses n8n) via the existing /doc-api proxy.
+ *  doc-server registers the file, extracts text, and runs embeddings in background.
+ *  Returns immediately with {id, processing: true}.
  */
 export async function uploadFileAPI(file: File) {
     const base64 = await fileToBase64(file);
@@ -32,7 +34,7 @@ export async function uploadFileAPI(file: File) {
         id: string;
         filename: string;
         message?: string;
-    }>('/webhook/upload', {
+    }>(`${DOC_SERVER}/upload`, {
         filename: file.name,
         fileBase64: base64,
         mimeType: file.type,
@@ -129,8 +131,9 @@ export async function getExecution(executionId: string): Promise<N8nExecution> {
     return data;
 }
 
-/** GET /webhook/health → {qdrant, ollama, n8n}
- *  Proxied by Vite to doc-server /health which checks all services locally.
+/** GET /doc-api/health → {qdrant, ollama, n8n}
+ *  doc-server checks all services on localhost and returns unified status.
+ *  Uses the existing /doc-api proxy — no Vite restart required.
  */
 export async function getHealth() {
     const { data } = await api.get<{
@@ -138,7 +141,7 @@ export async function getHealth() {
         qdrant: string;
         ollama: string;
         n8n: string;
-    }>('/webhook/health');
+    }>(`${DOC_SERVER}/health`);
     return data;
 }
 
