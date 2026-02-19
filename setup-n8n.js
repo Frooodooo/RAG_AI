@@ -260,8 +260,7 @@ async function main() {
         });
 
         if (!res.ok) {
-            const text = await res.text();
-            console.error(`  FAILED (${res.status}): ${text.slice(0, 500)}`);
+            console.error(`  FAILED (${res.status})`);
             continue;
         }
 
@@ -270,7 +269,7 @@ async function main() {
 
         const actRes = await fetch(`${BASE}/workflows/${created.id}/activate`, { method: 'POST', headers });
         console.log(`  Activate: ${actRes.status}`);
-        if (!actRes.ok) console.error(`  Activate error: ${(await actRes.text()).slice(0, 300)}`);
+        if (!actRes.ok) console.error(`  Activate error: ${actRes.status}`);
     }
 
     console.log('\nWaiting 3s for webhook registration...');
@@ -281,7 +280,8 @@ async function main() {
     try {
         const r = await fetch('http://localhost:5678/webhook/health', { signal: AbortSignal.timeout(15000) });
         console.log(`Status: ${r.status}`);
-        console.log(`Body: ${await r.text()}`);
+        await r.text();
+        console.log('Response body received');
     } catch (e) { console.log(`Error: ${e.message}`); }
 
     // Test documents
@@ -289,7 +289,8 @@ async function main() {
     try {
         const r = await fetch('http://localhost:5678/webhook/documents', { signal: AbortSignal.timeout(15000) });
         console.log(`Status: ${r.status}`);
-        console.log(`Body: ${await r.text()}`);
+        await r.text();
+        console.log('Response body received');
     } catch (e) { console.log(`Error: ${e.message}`); }
 
     // Test upload
@@ -302,7 +303,8 @@ async function main() {
             signal: AbortSignal.timeout(15000)
         });
         console.log(`Status: ${r.status}`);
-        console.log(`Body: ${await r.text()}`);
+        await r.text();
+        console.log('Response body received');
     } catch (e) { console.log(`Error: ${e.message}`); }
 
     // Test chat (with short timeout since Ollama may be slow)
@@ -315,8 +317,8 @@ async function main() {
             signal: AbortSignal.timeout(120000)
         });
         console.log(`Status: ${r.status}`);
-        const body = await r.text();
-        console.log(`Body: ${body.slice(0, 500)}`);
+        await r.text();
+        console.log('Response body received');
     } catch (e) { console.log(`Error: ${e.message}`); }
 }
 
