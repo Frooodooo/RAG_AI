@@ -48,16 +48,19 @@ function App() {
   const [isChatProcessing, setIsChatProcessing] = useState(false)
   const [executionId, setExecutionId] = useState<string | null>(null)
   const [activeWorkflow, setActiveWorkflow] = useState<WorkflowType>('chat')
+  const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowType>('chat')
   const [health, setHealth] = useState<{ qdrant: string; ollama: string; n8n: string } | null>(null)
 
   const handleChatExecution = (id: string) => {
     setExecutionId(id)
     setActiveWorkflow('chat')
+    setSelectedWorkflow('chat')
   }
 
   const handleUploadExecution = (id: string) => {
     setExecutionId(id)
     setActiveWorkflow('upload')
+    setSelectedWorkflow('upload')
   }
 
   useEffect(() => {
@@ -194,30 +197,43 @@ function App() {
                 </p>
               </div>
 
-              {isChatProcessing && (
-                <div style={{
-                  marginLeft: 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '5px 12px',
-                  borderRadius: 'var(--r-md)',
-                  background: 'var(--accent-dim)',
-                  border: '1px solid rgba(93,107,254,0.2)',
-                }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent-2)' }}>
-                    Processing
-                  </span>
-                  <span className="typing-dots">
-                    <span /><span /><span />
-                  </span>
-                </div>
-              )}
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Workflow selector */}
+                {(['chat', 'upload'] as WorkflowType[]).map(wf => (
+                  <button
+                    key={wf}
+                    onClick={() => setSelectedWorkflow(wf)}
+                    className={selectedWorkflow === wf ? 'btn btn-primary' : 'btn btn-ghost'}
+                    style={{ fontSize: '13px', padding: '5px 14px' }}
+                  >
+                    {wf === 'chat' ? 'Chat RAG' : 'Upload Pipeline'}
+                  </button>
+                ))}
+
+                {isChatProcessing && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '5px 12px',
+                    borderRadius: 'var(--r-md)',
+                    background: 'var(--accent-dim)',
+                    border: '1px solid rgba(93,107,254,0.2)',
+                  }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent-2)' }}>
+                      Processing
+                    </span>
+                    <span className="typing-dots">
+                      <span /><span /><span />
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
             <WorkflowVisualizer
               isActive={isChatProcessing}
               executionId={executionId}
-              workflowType={activeWorkflow}
+              workflowType={executionId ? activeWorkflow : selectedWorkflow}
             />
           </div>
         )}

@@ -126,12 +126,19 @@ for ($i = 0; $i -lt 20; $i++) {
 
 # Summary
 Write-Host ""
-Write-Host "  ========================================" -ForegroundColor Green
-Write-Host "       All services started! [OK]         " -ForegroundColor Green
-Write-Host "  ========================================" -ForegroundColor Green
+Write-Host "  ============================================" -ForegroundColor Green
+Write-Host "       All services started!  [OK]           " -ForegroundColor Green
+Write-Host "  ============================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Local:    http://localhost:3000" -ForegroundColor White
-Write-Host "  Doc API:  http://localhost:3001/health" -ForegroundColor Gray
+Write-Host "  SERVICE PORTS" -ForegroundColor Cyan
+Write-Host "  ─────────────────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "  Frontend  (Vite)     http://localhost:3000" -ForegroundColor White
+Write-Host "  Doc API   (Express)  http://localhost:3001/health" -ForegroundColor White
+Write-Host "  n8n       (Docker)   http://localhost:5678" -ForegroundColor White
+Write-Host "  Qdrant    (Docker)   http://localhost:6333/dashboard" -ForegroundColor White
+Write-Host "  Ollama               http://localhost:11434" -ForegroundColor White
+Write-Host "  ─────────────────────────────────────────────" -ForegroundColor DarkGray
+Write-Host ""
 if ($tunnelUrl) {
     Write-Host "  Public:   $tunnelUrl" -ForegroundColor Cyan
 }
