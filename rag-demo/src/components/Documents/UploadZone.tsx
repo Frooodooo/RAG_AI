@@ -67,6 +67,8 @@ export default function UploadZone({ onUploadComplete, onExecution }: UploadZone
       'application/pdf': ['.pdf'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'text/plain': ['.txt'],
+      'text/markdown': ['.md'],
     },
     maxFiles: 20,
     disabled: isActive,
@@ -92,8 +94,8 @@ export default function UploadZone({ onUploadComplete, onExecution }: UploadZone
     if (stage === 'done' || stage === 'partial') return locale === 'lv' ? 'Dokumenti parādīsies sarakstā drīz' : 'Documents will appear in the list shortly'
     if (stage === 'error') return locale === 'lv' ? 'Lūdzu, mēģiniet vēlreiz' : 'Please try again'
     return locale === 'lv'
-      ? 'Velciet failus šeit vai noklikšķiniet — PDF, DOCX, XLSX'
-      : 'Drag files here or click to browse — PDF, DOCX, XLSX'
+      ? 'Velciet failus šeit vai noklikšķiniet — PDF, DOCX, XLSX, TXT, MD'
+      : 'Drag files here or click to browse — PDF, DOCX, XLSX, TXT, MD'
   }
 
   // ── Colors ───────────────────────────────────────────────────────────────────
