@@ -1,4 +1,4 @@
-import { useState, memo } from 'react'
+import { useState, memo, useMemo } from 'react'
 import type { Message } from '../../hooks/useChatSessions'
 
 // ── Inline markdown renderer ─────────────────────────────────────────────────
@@ -171,6 +171,8 @@ function ChatMessage({ message }: { message: Message }) {
   }
 
   /* ── AI message ── */
+  const renderedContent = useMemo(() => renderMarkdown(message.content), [message.content])
+
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">
       {/* Avatar */}
@@ -189,7 +191,7 @@ function ChatMessage({ message }: { message: Message }) {
 
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {renderMarkdown(message.content)}
+        {renderedContent}
 
         {/* Meta */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
