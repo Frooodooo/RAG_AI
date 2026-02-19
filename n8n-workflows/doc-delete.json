@@ -1,0 +1,103 @@
+{
+    "name": "Document Delete",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "doc-delete",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [240, 300],
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst id = body.id;\nif (!id) throw new Error('id is required');\nreturn [{ json: { id } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [460, 300],
+            "name": "Validate Input"
+        },
+        {
+            "parameters": {
+                "method": "DELETE",
+                "url": "=http://host.docker.internal:3001/docs/{{ $json.id }}",
+                "options": { "timeout": 10000 }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [680, 300],
+            "name": "Delete from DB",
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "jsCode": "const result = $input.first().json;\nconst collection = result.collection;\n\n// If deletion failed, pass through error\nif (result.error) {\n  return [{ json: { ok: false, error: result.error } }];\n}\n\nreturn [{ json: { ok: true, collection } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [900, 300],
+            "name": "Check Delete Result"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://host.docker.internal:6333/collections/rag_docs/points/delete",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ filter: { must: [{ key: 'doc_id', match: { value: $('Validate Input').first().json.id } }] } }) }}",
+                "options": { "timeout": 10000 }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [1120, 300],
+            "name": "Delete Qdrant Points",
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify({ ok: true, id: $('Validate Input').first().json.id }) }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [1340, 300],
+            "name": "Respond"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [{ "node": "Validate Input", "type": "main", "index": 0 }]
+            ]
+        },
+        "Validate Input": {
+            "main": [
+                [{ "node": "Delete from DB", "type": "main", "index": 0 }]
+            ]
+        },
+        "Delete from DB": {
+            "main": [
+                [{ "node": "Check Delete Result", "type": "main", "index": 0 }]
+            ]
+        },
+        "Check Delete Result": {
+            "main": [
+                [{ "node": "Delete Qdrant Points", "type": "main", "index": 0 }]
+            ]
+        },
+        "Delete Qdrant Points": {
+            "main": [
+                [{ "node": "Respond", "type": "main", "index": 0 }]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    }
+}
