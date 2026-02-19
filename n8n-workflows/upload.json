@@ -108,7 +108,7 @@
         },
         {
             "parameters": {
-                "jsCode": "// Chunk the extracted text and obtain embeddings from Ollama\n// Then prepare Qdrant point objects for batch insertion\n\nconst { extractedText, id, collection, filename, textLength } = $input.first().json;\n\nif (!extractedText || extractedText.trim().length < 10) {\n  // No text – mark as ready with 0 chunks and skip embedding\n  return [{ json: { docId: id, collection, totalChunks: 0, points: [], noText: true } }];\n}\n\nconst CHUNK_SIZE = 500;\nconst OVERLAP    = 50;\nconst EMBED_MODEL = 'nomic-embed-text-v2-moe';\nconst OLLAMA_URL  = 'http://host.docker.internal:11434/api/embeddings';\n\n// ── Chunk text ──────────────────────────────────────────────────────────────\nconst chunks = [];\nfor (let pos = 0; pos < extractedText.length; pos += (CHUNK_SIZE - OVERLAP)) {\n  const text = extractedText.slice(pos, pos + CHUNK_SIZE).trim();\n  if (text.length >= 20) chunks.push(text);\n}\n\n// Cap at 200 chunks to avoid n8n timeouts on huge documents\nconst cappedChunks = chunks.slice(0, 200);\n\n// ── Generate embeddings ──────────────────────────────────────────────────────\nconst points = [];\nfor (let i = 0; i < cappedChunks.length; i++) {\n  try {\n    const resp = await fetch(OLLAMA_URL, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ model: EMBED_MODEL, prompt: cappedChunks[i] }),\n    });\n    const data = await resp.json();\n    if (data.embedding && data.embedding.length > 0) {\n      points.push({\n        id: Date.now() + i,   // unique numeric ID required by Qdrant\n        vector: data.embedding,\n        payload: {\n          text:        cappedChunks[i],\n          doc_id:      id,\n          filename:    filename,\n          chunk_index: i,\n        },\n      });\n    }\n  } catch (err) {\n    console.error(`[chunk ${i}] embedding error: ${err.message}`);\n  }\n}\n\nreturn [{ json: { docId: id, collection, totalChunks: cappedChunks.length, points } }];"
+                "jsCode": "// Chunk the extracted text and obtain embeddings from Ollama\n// Then prepare Qdrant point objects for batch insertion\n\nconst { extractedText, id, collection, filename, textLength } = $input.first().json;\n\nif (!extractedText || extractedText.trim().length < 10) {\n  // No extractable text (image-based PDF, encrypted, or empty document)\n  return [{ json: { docId: id, collection, textChunks: 0, points: [], noText: true } }];\n}\n\nconst CHUNK_SIZE = 500;\nconst OVERLAP    = 50;\nconst EMBED_MODEL = 'nomic-embed-text-v2-moe';\nconst OLLAMA_URL  = 'http://host.docker.internal:11434/api/embeddings';\n\n// ── Chunk text ──────────────────────────────────────────────────────────────\nconst chunks = [];\nfor (let pos = 0; pos < extractedText.length; pos += (CHUNK_SIZE - OVERLAP)) {\n  const text = extractedText.slice(pos, pos + CHUNK_SIZE).trim();\n  if (text.length >= 20) chunks.push(text);\n}\n\n// Cap at 200 chunks to avoid n8n timeouts on huge documents\nconst cappedChunks = chunks.slice(0, 200);\n\n// textChunks = actual text segments found in the document (always report this)\nconst textChunks = cappedChunks.length;\n\n// ── Generate embeddings ──────────────────────────────────────────────────────\nconst points = [];\nfor (let i = 0; i < cappedChunks.length; i++) {\n  try {\n    const resp = await fetch(OLLAMA_URL, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ model: EMBED_MODEL, prompt: cappedChunks[i] }),\n    });\n    const data = await resp.json();\n    if (data.embedding && data.embedding.length > 0) {\n      points.push({\n        id: Date.now() + i,   // unique numeric ID required by Qdrant\n        vector: data.embedding,\n        payload: {\n          text:        cappedChunks[i],\n          doc_id:      id,\n          filename:    filename,\n          chunk_index: i,\n        },\n      });\n    }\n  } catch (err) {\n    console.error(`[chunk ${i}] embedding error: ${err.message}`);\n  }\n}\n\n// Return textChunks (text segments found) separately from points (embedded chunks)\nreturn [{ json: { docId: id, collection, textChunks, points } }];"
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
@@ -140,7 +140,7 @@
         },
         {
             "parameters": {
-                "jsCode": "// Only insert if we have embedding points to add\nconst { points, docId, collection, totalChunks, noText } = $input.first().json;\n\nif (noText || !points || points.length === 0) {\n  return [{ json: { docId, collection, totalChunks: 0, inserted: 0, skip: true } }];\n}\n\nreturn [{ json: { docId, collection, totalChunks, points, inserted: points.length } }];"
+                "jsCode": "// Decide whether to insert into Qdrant and what status to report\nconst { points, docId, collection, totalChunks, textChunks, noText } = $input.first().json;\n\n// textChunks = text segments extracted; fall back to totalChunks for backward compat\nconst chunkCount = (textChunks !== undefined) ? textChunks : (totalChunks || 0);\n\nif (noText) {\n  return [{ json: {\n    docId, collection, totalChunks: 0, inserted: 0, skip: true,\n    statusToSet: 'error',\n    errorMsg: 'No extractable text found. The document may be image-based, encrypted, or empty.'\n  } }];\n}\n\nif (!points || points.length === 0) {\n  return [{ json: {\n    docId, collection, totalChunks: chunkCount, inserted: 0, skip: true,\n    statusToSet: 'error',\n    errorMsg: `Text extracted (${chunkCount} segments) but embedding failed. Ensure the embedding model is running in Ollama.`\n  } }];\n}\n\nreturn [{ json: {\n  docId, collection, totalChunks: chunkCount, points, inserted: points.length,\n  statusToSet: 'ready', errorMsg: null\n} }];"
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
@@ -156,7 +156,7 @@
                 "url": "http://host.docker.internal:6333/collections/rag_docs/points",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ { points: $json.points } }}",
+                "jsonBody": "={{ { points: $json.points || [] } }}",
                 "options": {
                     "timeout": 60000
                 }
@@ -176,7 +176,7 @@
                 "url": "=http://host.docker.internal:3001/docs/{{ $('Check Has Points').first().json.docId }}/status",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ { status: 'ready', chunks: $('Check Has Points').first().json.totalChunks } }}",
+                "jsonBody": "={{ { status: $('Check Has Points').first().json.statusToSet || 'ready', chunks: $('Check Has Points').first().json.totalChunks, error_message: $('Check Has Points').first().json.errorMsg } }}",
                 "options": {
                     "timeout": 10000
                 }
