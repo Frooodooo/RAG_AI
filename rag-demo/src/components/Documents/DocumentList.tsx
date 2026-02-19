@@ -1,13 +1,6 @@
 import { format } from 'date-fns'
 import { useLocale } from '../../i18n'
-
-interface Document {
-  id: string
-  filename: string
-  type: string
-  date?: string
-  status?: string
-}
+import { type Document } from '../../api'
 
 const EXT_COLORS: Record<string, { bg: string; color: string }> = {
   pdf:  { bg: 'rgba(248,113,113,0.12)', color: '#f87171' },

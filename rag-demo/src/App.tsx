@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getHealth } from './api'
+import { getHealth, type HealthStatus } from './api'
 import { useLocale, type Locale } from './i18n'
 import RigaLogo from './components/RigaLogo'
 import ChatPage from './components/Chat/ChatPage'
@@ -46,7 +46,7 @@ function App() {
   const { locale, setLocale, t } = useLocale()
   const [activeTab, setActiveTab] = useState<Tab>('chat')
   const [isChatProcessing, setIsChatProcessing] = useState(false)
-  const [health, setHealth] = useState<{ qdrant: string; ollama: string; n8n: string } | null>(null)
+  const [health, setHealth] = useState<HealthStatus | null>(null)
 
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setHealth(null))

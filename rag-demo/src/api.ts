@@ -8,12 +8,35 @@ const api = axios.create({
     },
 });
 
+export interface HealthStatus {
+    qdrant: string;
+    ollama: string;
+    n8n: string;
+}
+
+export interface Source {
+    file: string;
+    excerpt: string;
+    score: number;
+}
+
+export interface Document {
+    id: string;
+    filename: string;
+    type: string;
+    chunks: number;
+    date: string;
+    status: string;
+}
+
+export interface ChatResponse {
+    answer: string;
+    sources: Source[];
+}
+
 /** POST /webhook/chat → {answer, sources[]} */
 export async function sendChat(message: string, sessionId: string) {
-    const { data } = await api.post<{
-        answer: string;
-        sources: Array<{ file: string; excerpt: string; score: number }>;
-    }>('/webhook/chat', { message, sessionId });
+    const { data } = await api.post<ChatResponse>('/webhook/chat', { message, sessionId });
     return data;
 }
 
@@ -30,26 +53,13 @@ export async function uploadFileAPI(file: File) {
 
 /** GET /webhook/documents → [{id, filename, type, chunks, date}] */
 export async function getDocs() {
-    const { data } = await api.get<
-        Array<{
-            id: string;
-            filename: string;
-            type: string;
-            chunks: number;
-            date: string;
-            status: string;
-        }>
-    >('/webhook/documents');
+    const { data } = await api.get<Document[]>('/webhook/documents');
     return data;
 }
 
 /** GET /webhook/health → {qdrant, ollama, n8n} */
 export async function getHealth() {
-    const { data } = await api.get<{
-        qdrant: string;
-        ollama: string;
-        n8n: string;
-    }>('/webhook/health');
+    const { data } = await api.get<HealthStatus>('/webhook/health');
     return data;
 }
 

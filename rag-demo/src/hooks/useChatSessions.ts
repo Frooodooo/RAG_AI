@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+import { type Source } from '../api'
 
 export interface Message {
     role: 'user' | 'ai'
     content: string
     timestamp: string // ISO string — survives JSON serialization
-    sources?: Array<{ file: string; excerpt: string; score: number }>
+    sources?: Source[]
 }
 
 export interface ChatSession {

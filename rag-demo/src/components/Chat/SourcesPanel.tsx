@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useLocale } from '../../i18n'
-
-interface Source { file: string; excerpt: string; score: number }
+import { type Source } from '../../api'
 
 export default function SourcesPanel({ sources }: { sources: Source[] }) {
   const { t } = useLocale()
