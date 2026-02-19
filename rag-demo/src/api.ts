@@ -8,11 +8,12 @@ const api = axios.create({
     },
 });
 
-/** POST /webhook/chat → {answer, sources[]} */
+/** POST /webhook/chat → {answer, sources[], executionId?} */
 export async function sendChat(message: string, sessionId: string) {
     const { data } = await api.post<{
         answer: string;
         sources: Array<{ file: string; excerpt: string; score: number }>;
+        executionId?: string;
     }>('/webhook/chat', { message, sessionId });
     return data;
 }
@@ -87,6 +88,30 @@ export async function searchInDocs(query: string, docId?: string, limit = 10) {
 /** DELETE /webhook/doc-delete  (proxied via n8n → doc-server) */
 export async function deleteDoc(id: string) {
     const { data } = await api.post('/webhook/doc-delete', { id });
+    return data;
+}
+
+// ---- n8n REST API ----
+
+export interface N8nExecution {
+    id: string;
+    status: 'running' | 'success' | 'error' | 'waiting' | 'canceled';
+    finished: boolean;
+    data?: {
+        resultData?: {
+            runData?: Record<string, Array<{ startTime: number; executionTime: number; error?: unknown }>>;
+        };
+        executionData?: {
+            nodeExecutionStack?: Array<{ node: { name: string } }>;
+        };
+    };
+}
+
+/** GET /n8n-api/executions/{id} — polls n8n execution status (API key injected by Vite proxy) */
+export async function getExecution(executionId: string): Promise<N8nExecution> {
+    const { data } = await api.get<N8nExecution>(`/n8n-api/executions/${executionId}`, {
+        timeout: 10_000,
+    });
     return data;
 }
 

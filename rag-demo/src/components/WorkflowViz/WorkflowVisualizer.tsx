@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
     ReactFlow,
     MiniMap,
@@ -8,164 +8,175 @@ import {
     useEdgesState,
     MarkerType,
     type Node,
-    type Edge
+    type Edge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useLocale } from '../../i18n';
-import workflowData from '../../assets/chat-workflow.json';
+import chatWorkflow from '../../assets/chat-workflow.json';
+import uploadWorkflow from '../../assets/upload-workflow.json';
+import ExecutionNode, { type NodeExecStatus, type ExecutionNodeType } from './ExecutionNode';
+import { useExecutionTracker } from '../../hooks/useExecutionTracker';
 
-interface WorkflowVisualizerProps {
-    isActive?: boolean
-}
+const nodeTypes = { execution: ExecutionNode };
 
-// Map n8n node types to visual styles
-const getNodeStyle = (type: string, isActive: boolean) => {
-    const baseStyle = {
-        padding: '10px 15px',
-        borderRadius: '8px',
-        border: isActive ? '2px solid #1b9aaa' : '1px solid var(--border-subtle)',
-        background: isActive ? 'rgba(27, 154, 170, 0.2)' : 'var(--bg-secondary)',
-        color: isActive ? '#fff' : 'var(--text-primary)',
-        width: 180,
-        fontSize: '12px',
-        fontWeight: 500,
-        boxShadow: isActive ? '0 0 15px rgba(27, 154, 170, 0.4)' : 'none',
-        transition: 'all 0.3s ease'
-    };
+type WorkflowType = 'chat' | 'upload';
 
-    if (type.includes('webhook')) {
-        return { ...baseStyle, borderLeft: '4px solid #f2cf59' }; // Yellow
-    }
-    if (type.includes('httpRequest')) {
-        return { ...baseStyle, borderLeft: '4px solid #e35a5a' }; // Red
-    }
-    if (type.includes('code')) {
-        return { ...baseStyle, borderLeft: '4px solid #4a90e2' }; // Blue
-    }
-    return baseStyle;
-};
+// Build ReactFlow nodes + edges from a workflow JSON definition
+function buildGraph(wf: typeof chatWorkflow): { nodes: Node[]; edges: Edge[] } {
+    if (!wf.nodes || !wf.connections) return { nodes: [], edges: [] };
 
-// Pre-compute workflow data
-const computeWorkflowData = () => {
-    if (!workflowData.nodes || !workflowData.connections) {
-         return { nodes: [], edges: [] };
-    }
-
-    // 1. Map Nodes
-    const initialNodes: Node[] = workflowData.nodes.map((n: any) => ({
+    const nodes: Node[] = (wf.nodes as Array<{ name: string; type: string; position: [number, number]; description?: string }>).map(n => ({
         id: n.name,
         position: { x: n.position[0], y: n.position[1] },
-        data: { label: n.name },
-        type: 'default',
-        // Style is applied dynamically in rendering, but we set initial here
-        style: getNodeStyle(n.type, false)
-    }));
+        type: 'execution',
+        data: {
+            label: n.name,
+            nodeType: n.type ?? '',
+            description: n.description ?? '',
+            status: 'idle' as NodeExecStatus,
+        },
+    } satisfies ExecutionNodeType));
 
-    // 2. Map Edges
-    const initialEdges: Edge[] = [];
-    Object.keys(workflowData.connections).forEach(sourceName => {
-        const outputs = (workflowData.connections as any)[sourceName];
-        // outputs is usually { main: [ [ { node: 'Target', ... } ] ] }
-        Object.keys(outputs).forEach(outputType => {
-            outputs[outputType].forEach((connectionGroup: any[]) => {
-                connectionGroup.forEach((conn: any) => {
-                    initialEdges.push({
-                        id: `${sourceName}-${conn.node}`,
-                        source: sourceName,
-                        target: conn.node,
-                        animated: true,
-                        style: { stroke: 'var(--text-muted)' },
-                        markerEnd: { type: MarkerType.ArrowClosed }
-                    });
+    const edges: Edge[] = [];
+    const connections = wf.connections as Record<string, { main: Array<Array<{ node: string; type: string; index: number }>> }>;
+
+    Object.entries(connections).forEach(([src, outputs]) => {
+        outputs.main.forEach(group => {
+            group.forEach(conn => {
+                edges.push({
+                    id: `${src}->${conn.node}`,
+                    source: src,
+                    target: conn.node,
+                    animated: true,
+                    style: { stroke: 'rgba(255,255,255,0.09)' },
+                    markerEnd: { type: MarkerType.ArrowClosed, color: 'rgba(255,255,255,0.09)' },
                 });
             });
         });
     });
 
-    return { nodes: initialNodes, edges: initialEdges };
-};
+    return { nodes, edges };
+}
 
-const { nodes: initialNodes, edges: initialEdges } = computeWorkflowData();
+export interface WorkflowVisualizerProps {
+    /** n8n execution ID to poll for real-time node status */
+    executionId?: string | null;
+    /** Which workflow definition to display */
+    workflowType?: WorkflowType;
+    /** Simple on/off flag used when no executionId is available */
+    isActive?: boolean;
+}
 
-export default function WorkflowVisualizer({ isActive = false }: WorkflowVisualizerProps) {
+export default function WorkflowVisualizer({
+    executionId = null,
+    workflowType = 'chat',
+    isActive = false,
+}: WorkflowVisualizerProps) {
     const { t } = useLocale();
-    const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
-    const [activeNodeIds, setActiveNodeIds] = useState<string[]>([]);
 
-    // Animation Logic
+    const wfData = workflowType === 'upload' ? uploadWorkflow : chatWorkflow;
+    const { nodes: initNodes, edges: initEdges } = useMemo(() => buildGraph(wfData), [wfData]);
+
+    const [nodes, setNodes, onNodesChange] = useNodesState(initNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges);
+
+    // Re-init graph when workflow type switches
     useEffect(() => {
-        let timeoutIds: ReturnType<typeof setTimeout>[] = [];
+        const { nodes: n, edges: e } = buildGraph(wfData);
+        setNodes(n);
+        setEdges(e);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [workflowType]);
 
-        if (isActive) {
-            // Start sequence
-            setActiveNodeIds(['Webhook']);
-            timeoutIds.push(setTimeout(() => setActiveNodeIds(prev => [...prev, 'Parse Input']), 800));
-            timeoutIds.push(setTimeout(() => setActiveNodeIds(prev => [...prev, 'Ollama Chat']), 1600));
-        } else {
-            // End sequence (if we were active)
-            if (activeNodeIds.includes('Ollama Chat')) {
-                setActiveNodeIds(prev => [...prev, 'Format Response']);
-                timeoutIds.push(setTimeout(() => setActiveNodeIds(prev => [...prev, 'Respond']), 600));
-                timeoutIds.push(setTimeout(() => setActiveNodeIds([]), 2500)); // Reset
-            } else {
-                setActiveNodeIds([]);
-            }
-        }
+    const execState = useExecutionTracker(executionId);
 
-        return () => timeoutIds.forEach(clearTimeout);
-    }, [isActive]);
-
-    // Apply Active Styles
+    // Map execution state → node status
     useEffect(() => {
-        setNodes(nds => nds.map(node => ({
-            ...node,
-            style: getNodeStyle(
-                // Find original type from ID? We lost explicit type in state, 
-                // but we can infer or store it. For simplicity, just check label/id.
-                // Fallback safe checks
-                (node.id || '').toLowerCase().includes('webhook') ? 'webhook' :
-                    (node.id || '').toLowerCase().includes('chat') ? 'httpRequest' : 'code',
-                activeNodeIds.includes(node.id)
-            )
-        })));
-    }, [activeNodeIds, setNodes]);
+        setNodes(nds =>
+            nds.map(node => {
+                let status: NodeExecStatus = 'idle';
+
+                if (executionId) {
+                    // Real execution data from n8n API
+                    if (execState.errorNodes.has(node.id)) {
+                        status = 'error';
+                    } else if (execState.doneNodes.has(node.id)) {
+                        status = 'done';
+                    } else if (execState.runningNodes.has(node.id)) {
+                        status = 'running';
+                    }
+                } else if (isActive) {
+                    // Fallback: highlight entry node while processing
+                    status = node.id === 'Webhook' ? 'running' : 'idle';
+                }
+
+                return { ...node, data: { ...node.data, status } };
+            })
+        );
+    }, [execState, executionId, isActive, setNodes]);
+
+    const wfLabel = workflowType === 'upload'
+        ? (uploadWorkflow as any).name
+        : (chatWorkflow as any).name;
 
     return (
-        <div className="h-full flex flex-col" style={{ background: 'var(--bg-primary)' }}>
-            <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-secondary)' }}>
-                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+        <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', background: '#06091a' }}>
+            {/* Compact header strip */}
+            <div style={{
+                padding: '8px 16px',
+                borderBottom: '1px solid rgba(255,255,255,0.055)',
+                background: '#0b0f23',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                flexShrink: 0,
+            }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--t-accent, #7c87fe)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                     {t('wf.title') as string}
-                </h2>
-                <div className="flex items-center gap-2">
-                    <p className="text-sm opacity-80" style={{ color: 'var(--text-secondary)' }}>
+                </span>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>·</span>
+                <span style={{ fontSize: 11, color: '#4a5578' }}>{wfLabel}</span>
+
+                {(isActive || (executionId && !execState.finished)) && (
+                    <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--accent-2, #7c87fe)' }}>
+                        <span style={{
+                            display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+                            background: '#5d6bfe',
+                            animation: 'ping 1s cubic-bezier(0,0,0.2,1) infinite',
+                        }} />
                         {t('wf.description') as string}
-                    </p>
-                    {isActive && (
-                        <span className="flex h-2 w-2 relative ml-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
-                        </span>
-                    )}
-                </div>
+                    </span>
+                )}
+
+                {executionId && execState.finished && (
+                    <span style={{ marginLeft: 'auto', fontSize: 11, color: '#34d399' }}>
+                        ✓ {execState.errorNodes.size === 0 ? 'Completed' : 'Finished with errors'}
+                    </span>
+                )}
             </div>
 
-            <div className="flex-1 w-full h-full">
+            {/* ReactFlow canvas */}
+            <div style={{ flex: 1, minHeight: 0 }}>
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
+                    nodeTypes={nodeTypes}
                     fitView
                     attributionPosition="bottom-right"
                 >
-                    <Background color="var(--border-subtle)" gap={16} />
+                    <Background color="rgba(255,255,255,0.04)" gap={20} />
                     <Controls />
                     <MiniMap
                         nodeColor={(n) => {
-                            return n.style?.background as string || '#eee';
+                            const status = (n.data as any)?.status as NodeExecStatus;
+                            if (status === 'done')    return '#34d399';
+                            if (status === 'running') return '#5d6bfe';
+                            if (status === 'error')   return '#f87171';
+                            return '#19203a';
                         }}
-                        maskColor="rgba(0,0,0,0.4)"
+                        maskColor="rgba(6,9,26,0.6)"
                     />
                 </ReactFlow>
             </div>
