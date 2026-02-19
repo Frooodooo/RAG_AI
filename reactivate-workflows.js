@@ -54,8 +54,7 @@ async function main() {
     try {
         const h = await fetch('http://localhost:5678/webhook/health');
         console.log(`  Status: ${h.status}`);
-        const body = await h.text();
-        console.log(`  Body: ${body.slice(0, 500)}`);
+        await h.text(); // Consume body without logging
     } catch (e) {
         console.log(`  Error: ${e.message}`);
     }
@@ -64,8 +63,7 @@ async function main() {
     try {
         const d = await fetch('http://localhost:5678/webhook/documents');
         console.log(`  Status: ${d.status}`);
-        const body = await d.text();
-        console.log(`  Body: ${body.slice(0, 500)}`);
+        await d.text(); // Consume body without logging
     } catch (e) {
         console.log(`  Error: ${e.message}`);
     }
