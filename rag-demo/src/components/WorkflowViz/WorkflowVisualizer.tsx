@@ -12,6 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useLocale } from '../../i18n';
+import workflowData from '../../assets/chat-workflow.json';
 
 interface WorkflowVisualizerProps {
     isActive?: boolean
@@ -44,10 +45,52 @@ const getNodeStyle = (type: string, isActive: boolean) => {
     return baseStyle;
 };
 
+// Pre-compute workflow data
+const computeWorkflowData = () => {
+    if (!workflowData.nodes || !workflowData.connections) {
+         return { nodes: [], edges: [] };
+    }
+
+    // 1. Map Nodes
+    const initialNodes: Node[] = workflowData.nodes.map((n: any) => ({
+        id: n.name,
+        position: { x: n.position[0], y: n.position[1] },
+        data: { label: n.name },
+        type: 'default',
+        // Style is applied dynamically in rendering, but we set initial here
+        style: getNodeStyle(n.type, false)
+    }));
+
+    // 2. Map Edges
+    const initialEdges: Edge[] = [];
+    Object.keys(workflowData.connections).forEach(sourceName => {
+        const outputs = (workflowData.connections as any)[sourceName];
+        // outputs is usually { main: [ [ { node: 'Target', ... } ] ] }
+        Object.keys(outputs).forEach(outputType => {
+            outputs[outputType].forEach((connectionGroup: any[]) => {
+                connectionGroup.forEach((conn: any) => {
+                    initialEdges.push({
+                        id: `${sourceName}-${conn.node}`,
+                        source: sourceName,
+                        target: conn.node,
+                        animated: true,
+                        style: { stroke: 'var(--text-muted)' },
+                        markerEnd: { type: MarkerType.ArrowClosed }
+                    });
+                });
+            });
+        });
+    });
+
+    return { nodes: initialNodes, edges: initialEdges };
+};
+
+const { nodes: initialNodes, edges: initialEdges } = computeWorkflowData();
+
 export default function WorkflowVisualizer({ isActive = false }: WorkflowVisualizerProps) {
     const { t } = useLocale();
-    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
     const [activeNodeIds, setActiveNodeIds] = useState<string[]>([]);
 
     // Animation Logic
@@ -72,50 +115,6 @@ export default function WorkflowVisualizer({ isActive = false }: WorkflowVisuali
 
         return () => timeoutIds.forEach(clearTimeout);
     }, [isActive]);
-
-    // Fetch and Parse n8n Workflow
-    useEffect(() => {
-        fetch('/chat-workflow.json')
-            .then(res => res.json())
-            .then(data => {
-                if (!data.nodes || !data.connections) return;
-
-                // 1. Map Nodes
-                const newNodes: Node[] = data.nodes.map((n: any) => ({
-                    id: n.name,
-                    position: { x: n.position[0], y: n.position[1] },
-                    data: { label: n.name },
-                    type: 'default',
-                    // Style is applied dynamically in rendering, but we set initial here
-                    style: getNodeStyle(n.type, false)
-                }));
-
-                // 2. Map Edges
-                const newEdges: Edge[] = [];
-                Object.keys(data.connections).forEach(sourceName => {
-                    const outputs = data.connections[sourceName];
-                    // outputs is usually { main: [ [ { node: 'Target', ... } ] ] }
-                    Object.keys(outputs).forEach(outputType => {
-                        outputs[outputType].forEach((connectionGroup: any[]) => {
-                            connectionGroup.forEach((conn: any) => {
-                                newEdges.push({
-                                    id: `${sourceName}-${conn.node}`,
-                                    source: sourceName,
-                                    target: conn.node,
-                                    animated: true,
-                                    style: { stroke: 'var(--text-muted)' },
-                                    markerEnd: { type: MarkerType.ArrowClosed }
-                                });
-                            });
-                        });
-                    });
-                });
-
-                setNodes(newNodes);
-                setEdges(newEdges);
-            })
-            .catch(err => console.error("Failed to load workflow", err));
-    }, []);
 
     // Apply Active Styles
     useEffect(() => {
