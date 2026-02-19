@@ -34,6 +34,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   }
 
   const canSend = text.trim().length > 0 && !disabled
+  const buttonLabel = disabled ? t('chat.thinking') as string : t('chat.send') as string
 
   return (
     <div style={{
@@ -51,6 +52,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('chat.placeholder') as string}
+            aria-label={t('chat.placeholder') as string}
             disabled={disabled}
             rows={1}
             style={{
@@ -72,7 +74,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
           <button
             onClick={handleSubmit}
             disabled={!canSend}
-            title={t('chat.send') as string}
+            title={buttonLabel}
+            aria-label={buttonLabel}
             style={{
               width: '36px',
               height: '36px',
