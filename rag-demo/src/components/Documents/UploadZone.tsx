@@ -137,8 +137,6 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
           {error}
         </div>
       )}
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }

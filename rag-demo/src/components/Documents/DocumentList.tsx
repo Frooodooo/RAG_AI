@@ -31,7 +31,6 @@ export default function DocumentList({ documents, loading }: { documents: Docume
           animation: 'spin 1s linear infinite',
         }} />
         <p style={{ fontSize: '13px', color: 'var(--t3)' }}>{t('docs.loading') as string}</p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     )
   }
