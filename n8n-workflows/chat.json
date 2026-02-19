@@ -27,7 +27,7 @@
                 "url": "http://host.docker.internal:11434/api/embeddings",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ JSON.stringify({ model: 'nomic-embed-text', prompt: $json.message }) }}",
+                "jsonBody": "={{ JSON.stringify({ model: 'nomic-embed-text-v2-moe', prompt: $json.message }) }}",
                 "options": { "timeout": 30000 }
             },
             "type": "n8n-nodes-base.httpRequest",
