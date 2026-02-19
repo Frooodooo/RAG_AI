@@ -203,8 +203,19 @@ function App() {
                   <button
                     key={wf}
                     onClick={() => setSelectedWorkflow(wf)}
-                    className={selectedWorkflow === wf ? 'btn btn-primary' : 'btn btn-ghost'}
-                    style={{ fontSize: '13px', padding: '5px 14px' }}
+                    style={{
+                      fontSize: '13px',
+                      padding: '5px 16px',
+                      borderRadius: 'var(--r-md)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font)',
+                      fontWeight: 600,
+                      transition: 'all 200ms var(--ease)',
+                      background: selectedWorkflow === wf ? 'var(--accent)' : 'rgba(255,255,255,0.08)',
+                      color: selectedWorkflow === wf ? '#fff' : 'var(--t2)',
+                      boxShadow: selectedWorkflow === wf ? '0 2px 12px var(--accent-glow)' : 'none',
+                    }}
                   >
                     {wf === 'chat' ? 'Chat RAG' : 'Upload Pipeline'}
                   </button>

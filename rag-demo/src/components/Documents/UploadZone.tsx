@@ -72,6 +72,7 @@ export default function UploadZone({ onUploadComplete, onExecution }: UploadZone
     },
     maxFiles: 20,
     disabled: isActive,
+    useFsAccessApi: false,  // Chrome on Windows returns empty MIME for .md/.txt without this
   })
 
   // ── Labels ──────────────────────────────────────────────────────────────────
