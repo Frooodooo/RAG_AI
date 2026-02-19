@@ -47,7 +47,7 @@ async function importWorkflow(file) {
 }
 
 (async () => {
-    const files = ['health.json', 'documents.json', 'chat.json', 'upload.json'];
+    const files = ['health.json', 'documents.json', 'chat.json', 'upload.json', 'doc-search.json', 'doc-delete.json'];
     for (const file of files) {
         console.log(`\nImporting ${file}...`);
         await importWorkflow(file);

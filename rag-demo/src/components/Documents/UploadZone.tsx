@@ -7,28 +7,61 @@ interface UploadZoneProps {
   onUploadComplete: () => void
 }
 
+type UploadStage = 'idle' | 'reading' | 'uploading' | 'processing' | 'done' | 'duplicate' | 'error'
+
+const STAGE_LABELS: Record<UploadStage, { en: string; lv: string }> = {
+  idle:       { en: 'Upload Document',           lv: 'Augšupielādēt dokumentu' },
+  reading:    { en: 'Reading file…',             lv: 'Lasa failu…' },
+  uploading:  { en: 'Uploading…',                lv: 'Augšupielādē…' },
+  processing: { en: 'Indexing in background…',   lv: 'Indeksē fonā…' },
+  done:       { en: 'Upload complete!',          lv: 'Augšupielāde pabeigta!' },
+  duplicate:  { en: 'Already indexed',           lv: 'Jau indeksēts' },
+  error:      { en: 'Upload failed',             lv: 'Augšupielāde neizdevās' },
+}
+
+const STAGE_SUB: Record<UploadStage, { en: string; lv: string }> = {
+  idle:       { en: 'Drag a file here or click to browse',              lv: 'Velciet failu šeit vai noklikšķiniet' },
+  reading:    { en: 'Converting to base64…',                           lv: 'Konvertē uz base64…' },
+  uploading:  { en: 'Sending to n8n…',                                 lv: 'Sūta uz n8n…' },
+  processing: { en: 'Text extraction + embeddings running in n8n',     lv: 'Teksta izvilkšana + embeddings darbojas n8n' },
+  done:       { en: 'Document will appear in the list shortly',        lv: 'Dokuments parādīsies sarakstā drīz' },
+  duplicate:  { en: 'This file was already uploaded and indexed',      lv: 'Šis fails jau ir augšupielādēts un indeksēts' },
+  error:      { en: 'Please try again',                                lv: 'Lūdzu, mēģiniet vēlreiz' },
+}
+
 export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
-  const { t } = useLocale()
-  const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const { t, locale } = useLocale()
+  const [stage, setStage] = useState<UploadStage>('idle')
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  const isActive = stage === 'reading' || stage === 'uploading' || stage === 'processing'
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (!file) return
-    setUploading(true)
-    setError(null)
-    setSuccess(false)
+
+    setStage('reading')
+    setErrorMsg(null)
+
     try {
-      await uploadDocument(file)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
-      onUploadComplete()
-    } catch (err) {
-      setError('Upload failed. Please try again.')
+      setStage('uploading')
+      const result = await uploadDocument(file)
+
+      if (result.duplicate) {
+        setStage('duplicate')
+      } else {
+        setStage('processing')
+        onUploadComplete()
+      }
+
+      // Reset to idle after 4 seconds so user can upload another file
+      setTimeout(() => setStage('idle'), 4000)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setErrorMsg(msg)
+      setStage('error')
+      setTimeout(() => setStage('idle'), 5000)
       console.error(err)
-    } finally {
-      setUploading(false)
     }
   }, [onUploadComplete])
 
@@ -40,31 +73,44 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
     },
     maxFiles: 1,
-    disabled: uploading,
+    disabled: isActive,
   })
+
+  const stageLabel = STAGE_LABELS[stage][locale as 'en' | 'lv'] ?? STAGE_LABELS[stage].en
+  const stageSub   = STAGE_SUB[stage][locale as 'en' | 'lv']   ?? STAGE_SUB[stage].en
+
+  const borderColor = isDragActive ? 'var(--accent)'
+    : stage === 'error' ? 'rgba(248,113,113,0.5)'
+    : stage === 'done' || stage === 'duplicate' ? 'rgba(52,211,153,0.5)'
+    : 'var(--b2)'
+
+  const bgColor = isDragActive ? 'var(--accent-dim)'
+    : stage === 'error' ? 'rgba(248,113,113,0.06)'
+    : stage === 'done' || stage === 'duplicate' ? 'rgba(52,211,153,0.06)'
+    : 'var(--bg-2)'
 
   return (
     <div>
       <div
         {...getRootProps()}
         style={{
-          border: `2px dashed ${isDragActive ? 'var(--accent)' : 'var(--b2)'}`,
+          border: `2px dashed ${borderColor}`,
           borderRadius: 'var(--r-xl)',
           padding: '36px 24px',
           textAlign: 'center',
-          cursor: uploading ? 'not-allowed' : 'pointer',
-          background: isDragActive ? 'var(--accent-dim)' : 'var(--bg-2)',
+          cursor: isActive ? 'not-allowed' : 'pointer',
+          background: bgColor,
           transition: 'all 200ms var(--ease)',
           boxShadow: isDragActive ? '0 0 40px rgba(93,107,254,0.12)' : 'none',
         }}
         onMouseEnter={(e) => {
-          if (!uploading && !isDragActive) {
+          if (!isActive && !isDragActive && stage === 'idle') {
             e.currentTarget.style.borderColor = 'var(--b-accent)'
             e.currentTarget.style.background = 'var(--bg-3)'
           }
         }}
         onMouseLeave={(e) => {
-          if (!isDragActive) {
+          if (!isDragActive && stage === 'idle') {
             e.currentTarget.style.borderColor = 'var(--b2)'
             e.currentTarget.style.background = 'var(--bg-2)'
           }
@@ -73,25 +119,35 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
         <input {...getInputProps()} />
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-          {/* Upload icon */}
+          {/* Icon */}
           <div style={{
             width: '52px', height: '52px', borderRadius: '14px',
-            background: isDragActive ? 'rgba(93,107,254,0.2)' : 'rgba(255,255,255,0.04)',
-            border: `1px solid ${isDragActive ? 'rgba(93,107,254,0.4)' : 'var(--b1)'}`,
+            background: isDragActive ? 'rgba(93,107,254,0.2)'
+              : stage === 'error' ? 'rgba(248,113,113,0.1)'
+              : stage === 'done' || stage === 'duplicate' ? 'rgba(52,211,153,0.1)'
+              : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${isDragActive ? 'rgba(93,107,254,0.4)' : borderColor}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 200ms',
           }}>
-            {uploading ? (
+            {isActive ? (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" strokeWidth="2"
-                className="animate-spin">
+                style={{ animation: 'spin 1s linear infinite' }}>
                 <path d="M21 12a9 9 0 11-6.219-8.56" />
               </svg>
-            ) : success ? (
+            ) : stage === 'done' || stage === 'duplicate' ? (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
+            ) : stage === 'error' ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
             ) : (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={isDragActive ? 'var(--accent-2)' : 'var(--t3)'} strokeWidth="2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke={isDragActive ? 'var(--accent-2)' : 'var(--t3)'} strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
@@ -99,16 +155,42 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
             )}
           </div>
 
+          {/* Text */}
           <div>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--t1)', marginBottom: '4px' }}>
-              {success ? 'Upload complete!' : uploading ? (t('docs.uploading') as string) : (t('docs.upload_title') as string)}
+            <h3 style={{
+              fontSize: '15px', fontWeight: 700, color: 'var(--t1)', marginBottom: '4px',
+            }}>
+              {stageLabel}
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--t3)' }}>
-              {success ? 'Document indexed successfully.' : (t('docs.upload_desc') as string)}
+              {stageSub}
             </p>
+
+            {/* Processing steps */}
+            {stage === 'processing' && (
+              <div style={{
+                marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '8px',
+                fontSize: '11px', color: 'var(--t3)',
+              }}>
+                {['Extract text', 'Chunk', 'Embed', 'Qdrant'].map((step, i) => (
+                  <span key={step} style={{
+                    padding: '2px 8px', borderRadius: '999px',
+                    background: 'rgba(93,107,254,0.12)', color: 'var(--accent-2)',
+                    border: '1px solid rgba(93,107,254,0.2)',
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                  }}>
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                      style={{ animation: `spin ${1 + i * 0.3}s linear infinite` }}>
+                      <path d="M21 12a9 9 0 11-6.219-8.56" />
+                    </svg>
+                    {step}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
-          {!uploading && !success && (
+          {stage === 'idle' && (
             <>
               <button
                 type="button"
@@ -125,7 +207,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
         </div>
       </div>
 
-      {error && (
+      {stage === 'error' && errorMsg && (
         <div style={{
           marginTop: '12px', padding: '10px 14px',
           borderRadius: 'var(--r-md)',
@@ -134,7 +216,7 @@ export default function UploadZone({ onUploadComplete }: UploadZoneProps) {
           color: 'var(--red)',
           fontSize: '13px', textAlign: 'center',
         }}>
-          {error}
+          {errorMsg}
         </div>
       )}
     </div>

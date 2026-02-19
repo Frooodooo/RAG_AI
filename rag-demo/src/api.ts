@@ -17,10 +17,19 @@ export async function sendChat(message: string, sessionId: string) {
     return data;
 }
 
-/** POST /webhook/upload → upload doc as base64 JSON (NOT multipart — n8n bug #14876) */
+/** POST /webhook/upload → upload doc as base64 JSON (NOT multipart — n8n bug #14876)
+ *  Returns immediately with {id, processing: true} while n8n indexes in background.
+ */
 export async function uploadFileAPI(file: File) {
     const base64 = await fileToBase64(file);
-    const { data } = await api.post('/webhook/upload', {
+    const { data } = await api.post<{
+        success?: boolean;
+        processing?: boolean;
+        duplicate?: boolean;
+        id: string;
+        filename: string;
+        message?: string;
+    }>('/webhook/upload', {
         filename: file.name,
         fileBase64: base64,
         mimeType: file.type,
@@ -31,21 +40,54 @@ export async function uploadFileAPI(file: File) {
 export interface ApiDocument {
     id: string;
     filename: string;
+    /** Derived type: 'pdf' | 'docx' | 'xlsx' | 'document' */
     type: string;
     chunks: number;
     date: string;
-    status: string;
+    status: 'processing' | 'ready' | 'error';
+    fileSize?: number;
+    collection?: string;
+    indexedAt?: string | null;
+    error?: string | null;
 }
 
-/** GET /webhook/documents → [{id, filename, type, chunks, date}] */
+/** GET /webhook/documents → ApiDocument[] */
 export async function getDocs() {
     try {
         const { data } = await api.get<ApiDocument[]>('/webhook/documents');
-        return data;
+        return Array.isArray(data) ? data : [];
     } catch (error) {
         console.error('Failed to fetch documents:', error);
         throw error;
     }
+}
+
+export interface SearchResult {
+    id: string;
+    filename: string;
+    status: string;
+    chunks: number;
+    excerpt: string;
+    score: number;
+}
+
+/** POST /webhook/doc-search → SearchResult[]
+ *  Full-text search over indexed document text.
+ *  Pass docId to scope the search to a single document.
+ */
+export async function searchInDocs(query: string, docId?: string, limit = 10) {
+    const { data } = await api.post<SearchResult[]>('/webhook/doc-search', {
+        query,
+        docId: docId || null,
+        limit,
+    });
+    return Array.isArray(data) ? data : [];
+}
+
+/** DELETE /webhook/doc-delete  (proxied via n8n → doc-server) */
+export async function deleteDoc(id: string) {
+    const { data } = await api.post('/webhook/doc-delete', { id });
+    return data;
 }
 
 /** GET /webhook/health → {qdrant, ollama, n8n} */

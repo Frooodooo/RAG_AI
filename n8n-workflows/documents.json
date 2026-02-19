@@ -10,38 +10,27 @@
             },
             "type": "n8n-nodes-base.webhook",
             "typeVersion": 2,
-            "position": [
-                240,
-                300
-            ],
+            "position": [240, 300],
             "name": "Webhook"
         },
         {
             "parameters": {
-                "url": "http://host.docker.internal:6333/collections",
-                "options": {
-                    "timeout": 10000
-                }
+                "url": "http://host.docker.internal:3001/docs",
+                "options": { "timeout": 10000 }
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
-            "position": [
-                460,
-                300
-            ],
-            "name": "Get Collections",
+            "position": [460, 300],
+            "name": "Get Documents from DB",
             "onError": "continueRegularOutput"
         },
         {
             "parameters": {
-                "jsCode": "const result = $input.first().json;\nconst collections = result.result?.collections || [];\nconst docs = collections.map((c, i) => ({\n  id: String(i + 1),\n  filename: c.name,\n  type: 'collection',\n  chunks: 0,\n  date: new Date().toISOString(),\n  status: 'ready'\n}));\nreturn [{ json: docs }];"
+                "jsCode": "// Normalise the document list from doc-server into the API shape\n// the frontend expects.\nconst raw = $input.first().json;\n\n// doc-server returns an array directly\nconst list = Array.isArray(raw) ? raw : [];\n\nconst docs = list.map(d => ({\n  id:         d.id,\n  filename:   d.filename,\n  type:       (d.mime_type || '').includes('pdf')  ? 'pdf'\n            : (d.mime_type || '').includes('word') ? 'docx'\n            : (d.mime_type || '').includes('sheet') || (d.mime_type || '').includes('xlsx') ? 'xlsx'\n            : 'document',\n  chunks:     d.chunks  || 0,\n  date:       d.uploaded_at || new Date().toISOString(),\n  status:     d.status  || 'processing',\n  fileSize:   d.file_size || 0,\n  collection: d.collection || '',\n  indexedAt:  d.indexed_at || null,\n  error:      d.error_message || null,\n}));\n\nreturn [{ json: docs }];"
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
-            "position": [
-                680,
-                300
-            ],
+            "position": [680, 300],
             "name": "Format Documents"
         },
         {
@@ -52,45 +41,24 @@
             },
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1.1,
-            "position": [
-                900,
-                300
-            ],
+            "position": [900, 300],
             "name": "Respond"
         }
     ],
     "connections": {
         "Webhook": {
             "main": [
-                [
-                    {
-                        "node": "Get Collections",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
+                [{ "node": "Get Documents from DB", "type": "main", "index": 0 }]
             ]
         },
-        "Get Collections": {
+        "Get Documents from DB": {
             "main": [
-                [
-                    {
-                        "node": "Format Documents",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
+                [{ "node": "Format Documents", "type": "main", "index": 0 }]
             ]
         },
         "Format Documents": {
             "main": [
-                [
-                    {
-                        "node": "Respond",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
+                [{ "node": "Respond", "type": "main", "index": 0 }]
             ]
         }
     },

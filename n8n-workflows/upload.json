@@ -1,5 +1,5 @@
 {
-    "name": "Document Upload",
+    "name": "Document Upload – RAG Pipeline",
     "nodes": [
         {
             "parameters": {
@@ -10,87 +10,198 @@
             },
             "type": "n8n-nodes-base.webhook",
             "typeVersion": 2,
-            "position": [
-                240,
-                300
-            ],
+            "position": [240, 300],
             "name": "Webhook"
         },
         {
             "parameters": {
-                "jsCode": "const body = $input.first().json.body;\nconst filename = body.filename || 'unknown';\nconst fileBase64 = body.fileBase64 || '';\nconst mimeType = body.mimeType || 'application/octet-stream';\n\n// Decode base64 to binary\nconst buffer = Buffer.from(fileBase64, 'base64');\n\nreturn [{\n  json: { filename, mimeType, size: buffer.length },\n  binary: {\n    data: {\n      data: fileBase64,\n      mimeType: mimeType,\n      fileName: filename\n    }\n  }\n}];"
+                "jsCode": "// Extract and validate upload payload\nconst body = $input.first().json.body || $input.first().json;\nconst { filename, fileBase64, mimeType } = body;\n\nif (!filename || !fileBase64) {\n  throw new Error('Missing filename or fileBase64 in request body');\n}\n\nreturn [{ json: { filename, fileBase64, mimeType: mimeType || 'application/octet-stream' } }];"
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
-            "position": [
-                460,
-                300
-            ],
-            "name": "Decode Base64"
+            "position": [460, 300],
+            "name": "Extract Input"
         },
         {
             "parameters": {
-                "jsCode": "const filename = $input.first().json.filename;\nconst size = $input.first().json.size;\nreturn [{ json: {\n  success: true,\n  filename: filename,\n  size: size,\n  message: `File ${filename} received (${size} bytes). Document processing pipeline is being set up.`\n}}];"
+                "method": "POST",
+                "url": "http://host.docker.internal:3001/docs/register",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ filename: $json.filename, fileBase64: $json.fileBase64, mimeType: $json.mimeType }) }}",
+                "options": { "timeout": 60000 }
             },
-            "type": "n8n-nodes-base.code",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [680, 300],
+            "name": "Register Document",
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "loose"
+                    },
+                    "conditions": [
+                        {
+                            "id": "dup-check",
+                            "leftValue": "={{ $json.duplicate }}",
+                            "rightValue": true,
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "equal"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                }
+            },
+            "type": "n8n-nodes-base.if",
             "typeVersion": 2,
-            "position": [
-                680,
-                300
-            ],
-            "name": "Process File"
+            "position": [900, 300],
+            "name": "Is Duplicate?"
         },
         {
             "parameters": {
                 "respondWith": "json",
-                "responseBody": "={{ JSON.stringify($json) }}",
+                "responseBody": "={{ JSON.stringify({ duplicate: true, id: $json.id, filename: $json.filename, status: $json.status, chunks: $json.chunks, message: $json.message || 'Document already indexed' }) }}",
                 "options": {}
             },
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1.1,
-            "position": [
-                900,
-                300
-            ],
-            "name": "Respond"
+            "position": [1120, 160],
+            "name": "Respond Duplicate"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify({ success: true, processing: true, id: $json.id, filename: $json.filename, collection: $json.collection, message: 'Document received – indexing in progress' }) }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [1120, 440],
+            "name": "Respond Processing"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Chunk the extracted text and obtain embeddings from Ollama\n// Then prepare Qdrant point objects for batch insertion\n\nconst { extractedText, id, collection, filename, textLength } = $input.first().json;\n\nif (!extractedText || extractedText.trim().length < 10) {\n  // No text – mark as ready with 0 chunks and skip embedding\n  return [{ json: { docId: id, collection, totalChunks: 0, points: [], noText: true } }];\n}\n\nconst CHUNK_SIZE = 500;\nconst OVERLAP    = 50;\nconst EMBED_MODEL = 'nomic-embed-text';\nconst OLLAMA_URL  = 'http://host.docker.internal:11434/api/embeddings';\n\n// ── Chunk text ──────────────────────────────────────────────────────────────\nconst chunks = [];\nfor (let pos = 0; pos < extractedText.length; pos += (CHUNK_SIZE - OVERLAP)) {\n  const text = extractedText.slice(pos, pos + CHUNK_SIZE).trim();\n  if (text.length >= 20) chunks.push(text);\n}\n\n// Cap at 200 chunks to avoid n8n timeouts on huge documents\nconst cappedChunks = chunks.slice(0, 200);\n\n// ── Generate embeddings ──────────────────────────────────────────────────────\nconst points = [];\nfor (let i = 0; i < cappedChunks.length; i++) {\n  try {\n    const resp = await fetch(OLLAMA_URL, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ model: EMBED_MODEL, prompt: cappedChunks[i] }),\n    });\n    const data = await resp.json();\n    if (data.embedding && data.embedding.length > 0) {\n      points.push({\n        id: Date.now() + i,   // unique numeric ID required by Qdrant\n        vector: data.embedding,\n        payload: {\n          text:        cappedChunks[i],\n          doc_id:      id,\n          filename:    filename,\n          chunk_index: i,\n        },\n      });\n    }\n  } catch (err) {\n    console.error(`[chunk ${i}] embedding error: ${err.message}`);\n  }\n}\n\nreturn [{ json: { docId: id, collection, totalChunks: cappedChunks.length, points } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [1340, 440],
+            "name": "Chunk and Embed"
+        },
+        {
+            "parameters": {
+                "method": "PUT",
+                "url": "http://host.docker.internal:6333/collections/rag_docs",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\"vectors\": {\"size\": 768, \"distance\": \"Cosine\"}}",
+                "options": { "timeout": 15000 }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [1560, 440],
+            "name": "Create Qdrant Collection",
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Only insert if we have embedding points to add\nconst { points, docId, collection, totalChunks, noText } = $input.first().json;\n\nif (noText || !points || points.length === 0) {\n  return [{ json: { docId, collection, totalChunks: 0, inserted: 0, skip: true } }];\n}\n\nreturn [{ json: { docId, collection, totalChunks, points, inserted: points.length } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [1780, 440],
+            "name": "Check Has Points"
+        },
+        {
+            "parameters": {
+                "method": "PUT",
+                "url": "http://host.docker.internal:6333/collections/rag_docs/points",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ points: $json.points }) }}",
+                "options": { "timeout": 60000 }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [2000, 440],
+            "name": "Insert Qdrant Points",
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "method": "PATCH",
+                "url": "=http://host.docker.internal:3001/docs/{{ $('Check Has Points').first().json.docId }}/status",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ status: 'ready', chunks: $('Check Has Points').first().json.totalChunks }) }}",
+                "options": { "timeout": 10000 }
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [2220, 440],
+            "name": "Update Status Ready",
+            "onError": "continueRegularOutput"
         }
     ],
     "connections": {
         "Webhook": {
             "main": [
-                [
-                    {
-                        "node": "Decode Base64",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
+                [{ "node": "Extract Input", "type": "main", "index": 0 }]
             ]
         },
-        "Decode Base64": {
+        "Extract Input": {
             "main": [
-                [
-                    {
-                        "node": "Process File",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
+                [{ "node": "Register Document", "type": "main", "index": 0 }]
             ]
         },
-        "Process File": {
+        "Register Document": {
             "main": [
-                [
-                    {
-                        "node": "Respond",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
+                [{ "node": "Is Duplicate?", "type": "main", "index": 0 }]
+            ]
+        },
+        "Is Duplicate?": {
+            "main": [
+                [{ "node": "Respond Duplicate", "type": "main", "index": 0 }],
+                [{ "node": "Respond Processing", "type": "main", "index": 0 }]
+            ]
+        },
+        "Respond Processing": {
+            "main": [
+                [{ "node": "Chunk and Embed", "type": "main", "index": 0 }]
+            ]
+        },
+        "Chunk and Embed": {
+            "main": [
+                [{ "node": "Create Qdrant Collection", "type": "main", "index": 0 }]
+            ]
+        },
+        "Create Qdrant Collection": {
+            "main": [
+                [{ "node": "Check Has Points", "type": "main", "index": 0 }]
+            ]
+        },
+        "Check Has Points": {
+            "main": [
+                [{ "node": "Insert Qdrant Points", "type": "main", "index": 0 }]
+            ]
+        },
+        "Insert Qdrant Points": {
+            "main": [
+                [{ "node": "Update Status Ready", "type": "main", "index": 0 }]
             ]
         }
     },
     "settings": {
-        "executionOrder": "v1"
+        "executionOrder": "v1",
+        "saveDataErrorExecution": "all",
+        "saveDataSuccessExecution": "all",
+        "saveManualExecutions": true
     }
 }

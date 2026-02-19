@@ -12,7 +12,7 @@ Write-Host "  ========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # 1. Ollama
-Write-Host "[1/5] Checking Ollama..." -ForegroundColor Yellow
+Write-Host "[1/6] Checking Ollama..." -ForegroundColor Yellow
 try {
     $ollamaCheck = Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -TimeoutSec 3 -ErrorAction Stop
     $count = $ollamaCheck.models.Count
@@ -24,7 +24,7 @@ catch {
 }
 
 # 2. Qdrant
-Write-Host "[2/5] Starting Qdrant..." -ForegroundColor Yellow
+Write-Host "[2/6] Starting Qdrant..." -ForegroundColor Yellow
 $qdrantRunning = docker ps --filter "name=qdrant" --format "{{.Names}}" 2>$null
 if ($qdrantRunning -eq "qdrant") {
     Write-Host "  [OK] Qdrant already running" -ForegroundColor Green
@@ -40,7 +40,7 @@ else {
 }
 
 # 3. n8n
-Write-Host "[3/5] Starting n8n..." -ForegroundColor Yellow
+Write-Host "[3/6] Starting n8n..." -ForegroundColor Yellow
 $n8nRunning = docker ps --filter "name=n8n" --format "{{.Names}}" 2>$null
 if ($n8nRunning -eq "n8n") {
     Write-Host "  [OK] n8n already running" -ForegroundColor Green
@@ -56,8 +56,36 @@ else {
     }
 }
 
-# 4. Vite Dev Server
-Write-Host "[4/5] Starting Vite dev server..." -ForegroundColor Yellow
+# 4. Doc Server (Express + SQLite for document tracking and keyword search)
+Write-Host "[4/6] Starting doc-server..." -ForegroundColor Yellow
+$docServerRunning = docker ps --filter "name=rag-doc-server" --format "{{.Names}}" 2>$null
+if ($docServerRunning -eq "rag-doc-server") {
+    Write-Host "  [OK] doc-server already running on port 3001" -ForegroundColor Green
+}
+else {
+    docker start rag-doc-server 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  Creating new doc-server container..." -ForegroundColor Gray
+        docker run -d --name rag-doc-server -p 3001:3001 `
+            -v rag_doc_data:/app/data `
+            --add-host=host.docker.internal:host-gateway `
+            $(docker build -q "c:\Users\Frooodooo\Documents\RAG_AI\doc-server") `
+            2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  [WARN] doc-server failed to start. Build it first: docker build -t rag-doc-server .\doc-server" -ForegroundColor Red
+        } else {
+            Start-Sleep 2
+            Write-Host "  [OK] doc-server started on port 3001" -ForegroundColor Green
+        }
+    }
+    else {
+        Start-Sleep 2
+        Write-Host "  [OK] doc-server started on port 3001" -ForegroundColor Green
+    }
+}
+
+# 5. Vite Dev Server
+Write-Host "[5/6] Starting Vite dev server..." -ForegroundColor Yellow
 $viteJob = Start-Job -ScriptBlock {
     Set-Location "c:\Users\Frooodooo\Documents\RAG_AI\rag-demo"
     Write-Host "  [...] Clearing Vite cache..."
@@ -67,8 +95,8 @@ $viteJob = Start-Job -ScriptBlock {
 Start-Sleep 4
 Write-Host "  [OK] Vite dev server starting on http://localhost:3000" -ForegroundColor Green
 
-# 5. Cloudflare Tunnel
-Write-Host "[5/5] Starting Cloudflare Tunnel..." -ForegroundColor Yellow
+# 6. Cloudflare Tunnel
+Write-Host "[6/6] Starting Cloudflare Tunnel..." -ForegroundColor Yellow
 $tunnelLogFile = "c:\Users\Frooodooo\Documents\RAG_AI\tunnel-log.txt"
 $tunnelJob = Start-Job -ScriptBlock {
     & "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel --url http://localhost:3000 2>&1 |
@@ -91,10 +119,11 @@ for ($i = 0; $i -lt 20; $i++) {
 # Summary
 Write-Host ""
 Write-Host "  ========================================" -ForegroundColor Green
-Write-Host "        All services started! [OK]        " -ForegroundColor Green
+Write-Host "       All services started! [OK]         " -ForegroundColor Green
 Write-Host "  ========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Local:    http://localhost:3000" -ForegroundColor White
+Write-Host "  Doc API:  http://localhost:3001/health" -ForegroundColor Gray
 if ($tunnelUrl) {
     Write-Host "  Public:   $tunnelUrl" -ForegroundColor Cyan
 }
