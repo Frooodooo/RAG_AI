@@ -18,7 +18,7 @@
         },
         {
             "parameters": {
-                "jsCode": "// Extract and validate upload payload\nconst body = $input.first().json.body || $input.first().json;\nconst { filename, fileBase64, mimeType } = body;\n\nif (!filename || !fileBase64) {\n  throw new Error('Missing filename or fileBase64 in request body');\n}\n\nreturn [{ json: { filename, fileBase64, mimeType: mimeType || 'application/octet-stream' } }];"
+                "jsCode": "// Extract and validate upload payload\nconst body = $input.first().json.body || $input.first().json;\nconst { filename, fileBase64, mimeType } = body;\n\nif (!filename || !fileBase64) {\n  throw new Error('Missing filename or fileBase64 in request body');\n}\n\n// Detect MIME from extension — Windows Chrome sometimes sends empty or\n// generic application/octet-stream for Office files (.docx, .xlsx, .xls)\nconst ext = (filename || '').split('.').pop()?.toLowerCase() || '';\nconst MIME_BY_EXT = {\n  pdf:  'application/pdf',\n  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',\n  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',\n  xls:  'application/vnd.ms-excel',\n  txt:  'text/plain',\n  md:   'text/markdown',\n  csv:  'text/csv',\n};\nconst resolvedMime = (mimeType && mimeType !== 'application/octet-stream')\n  ? mimeType\n  : (MIME_BY_EXT[ext] || 'application/octet-stream');\n\nreturn [{ json: { filename, fileBase64, mimeType: resolvedMime } }];"
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
