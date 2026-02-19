@@ -8,6 +8,11 @@ if (!API_KEY) {
     process.exit(1);
 }
 
+if (!/^[a-zA-Z0-9_-]{5,255}$/.test(API_KEY)) {
+    console.error('Error: N8N_API_KEY must be a valid alphanumeric string (5-255 chars).');
+    process.exit(1);
+}
+
 const headers = { 'X-N8N-API-KEY': API_KEY, 'Content-Type': 'application/json' };
 
 async function deleteAll() {
