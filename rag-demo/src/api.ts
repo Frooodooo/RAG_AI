@@ -28,19 +28,24 @@ export async function uploadFileAPI(file: File) {
     return data;
 }
 
+export interface ApiDocument {
+    id: string;
+    filename: string;
+    type: string;
+    chunks: number;
+    date: string;
+    status: string;
+}
+
 /** GET /webhook/documents → [{id, filename, type, chunks, date}] */
 export async function getDocs() {
-    const { data } = await api.get<
-        Array<{
-            id: string;
-            filename: string;
-            type: string;
-            chunks: number;
-            date: string;
-            status: string;
-        }>
-    >('/webhook/documents');
-    return data;
+    try {
+        const { data } = await api.get<ApiDocument[]>('/webhook/documents');
+        return data;
+    } catch (error) {
+        console.error('Failed to fetch documents:', error);
+        throw error;
+    }
 }
 
 /** GET /webhook/health → {qdrant, ollama, n8n} */
