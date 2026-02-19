@@ -9,6 +9,46 @@ if (!API_KEY) {
 }
 
 const headers = { 'X-N8N-API-KEY': API_KEY, 'Content-Type': 'application/json' };
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'n8n-webhook-secret-123';
+
+async function getOrCreateCredential() {
+    const credName = "Webhook Auth";
+    // Check if exists
+    const listRes = await fetch(`${BASE}/credentials`, { headers });
+    if (!listRes.ok) {
+        throw new Error(`Failed to list credentials: ${listRes.status}`);
+    }
+    const { data } = await listRes.json();
+    const existing = data.find(c => c.name === credName);
+    if (existing) {
+        console.log(`Using existing credential: ${existing.id}`);
+        return existing.id;
+    }
+
+    // Create
+    console.log(`Creating credential: ${credName}`);
+    const createRes = await fetch(`${BASE}/credentials`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+            name: credName,
+            type: "headerAuth",
+            data: {
+                name: "Authorization",
+                value: WEBHOOK_SECRET
+            }
+        })
+    });
+
+    if (!createRes.ok) {
+        const text = await createRes.text();
+        throw new Error(`Failed to create credential: ${createRes.status} ${text}`);
+    }
+
+    const newCred = await createRes.json();
+    console.log(`Created credential: ${newCred.id}`);
+    return newCred.id;
+}
 
 async function deleteAll() {
     const res = await fetch(`${BASE}/workflows`, { headers });
@@ -24,12 +64,24 @@ async function deleteAll() {
 // HEALTH CHECK WORKFLOW
 // Uses HTTP Request nodes to check Ollama and Qdrant
 // ============================================================
-function makeHealthWorkflow() {
+function makeHealthWorkflow(credentialId) {
     return {
         name: "Health Check",
         nodes: [
             {
-                parameters: { httpMethod: "GET", path: "health", responseMode: "responseNode", options: {} },
+                parameters: {
+                    httpMethod: "GET",
+                    path: "health",
+                    responseMode: "responseNode",
+                    options: {},
+                    authentication: "headerAuth"
+                },
+                credentials: {
+                    headerAuth: {
+                        id: credentialId,
+                        name: "Webhook Auth"
+                    }
+                },
                 type: "n8n-nodes-base.webhook", typeVersion: 2,
                 position: [240, 300], id: randomUUID(), name: "Webhook", webhookId: randomUUID()
             },
@@ -97,12 +149,24 @@ function makeHealthWorkflow() {
 // DOCUMENTS LIST WORKFLOW
 // Uses HTTP Request + Code to list Qdrant collections
 // ============================================================
-function makeDocumentsWorkflow() {
+function makeDocumentsWorkflow(credentialId) {
     return {
         name: "Documents List",
         nodes: [
             {
-                parameters: { httpMethod: "GET", path: "documents", responseMode: "responseNode", options: {} },
+                parameters: {
+                    httpMethod: "GET",
+                    path: "documents",
+                    responseMode: "responseNode",
+                    options: {},
+                    authentication: "headerAuth"
+                },
+                credentials: {
+                    headerAuth: {
+                        id: credentialId,
+                        name: "Webhook Auth"
+                    }
+                },
                 type: "n8n-nodes-base.webhook", typeVersion: 2,
                 position: [240, 300], id: randomUUID(), name: "Webhook", webhookId: randomUUID()
             },
@@ -146,12 +210,24 @@ function makeDocumentsWorkflow() {
 // CHAT AGENT WORKFLOW
 // Uses HTTP Request to call Ollama API
 // ============================================================
-function makeChatWorkflow() {
+function makeChatWorkflow(credentialId) {
     return {
         name: "Chat Agent",
         nodes: [
             {
-                parameters: { httpMethod: "POST", path: "chat", responseMode: "responseNode", options: {} },
+                parameters: {
+                    httpMethod: "POST",
+                    path: "chat",
+                    responseMode: "responseNode",
+                    options: {},
+                    authentication: "headerAuth"
+                },
+                credentials: {
+                    headerAuth: {
+                        id: credentialId,
+                        name: "Webhook Auth"
+                    }
+                },
                 type: "n8n-nodes-base.webhook", typeVersion: 2,
                 position: [240, 300], id: randomUUID(), name: "Webhook", webhookId: randomUUID()
             },
@@ -206,12 +282,24 @@ function makeChatWorkflow() {
 // ============================================================
 // DOCUMENT UPLOAD WORKFLOW
 // ============================================================
-function makeUploadWorkflow() {
+function makeUploadWorkflow(credentialId) {
     return {
         name: "Document Upload",
         nodes: [
             {
-                parameters: { httpMethod: "POST", path: "upload", responseMode: "responseNode", options: {} },
+                parameters: {
+                    httpMethod: "POST",
+                    path: "upload",
+                    responseMode: "responseNode",
+                    options: {},
+                    authentication: "headerAuth"
+                },
+                credentials: {
+                    headerAuth: {
+                        id: credentialId,
+                        name: "Webhook Auth"
+                    }
+                },
                 type: "n8n-nodes-base.webhook", typeVersion: 2,
                 position: [240, 300], id: randomUUID(), name: "Webhook", webhookId: randomUUID()
             },
@@ -245,11 +333,14 @@ async function main() {
     console.log('Deleting old workflows...');
     await deleteAll();
 
+    console.log('Getting or creating credential...');
+    const credentialId = await getOrCreateCredential();
+
     const workflows = [
-        makeHealthWorkflow(),
-        makeDocumentsWorkflow(),
-        makeChatWorkflow(),
-        makeUploadWorkflow()
+        makeHealthWorkflow(credentialId),
+        makeDocumentsWorkflow(credentialId),
+        makeChatWorkflow(credentialId),
+        makeUploadWorkflow(credentialId)
     ];
 
     for (const wf of workflows) {
@@ -278,7 +369,10 @@ async function main() {
     // Test health
     console.log('\n=== Testing /webhook/health ===');
     try {
-        const r = await fetch('http://localhost:5678/webhook/health', { signal: AbortSignal.timeout(15000) });
+        const r = await fetch('http://localhost:5678/webhook/health', {
+            headers: { 'Authorization': WEBHOOK_SECRET },
+            signal: AbortSignal.timeout(15000)
+        });
         console.log(`Status: ${r.status}`);
         await r.text();
         console.log('Response body received');
@@ -287,7 +381,10 @@ async function main() {
     // Test documents
     console.log('\n=== Testing /webhook/documents ===');
     try {
-        const r = await fetch('http://localhost:5678/webhook/documents', { signal: AbortSignal.timeout(15000) });
+        const r = await fetch('http://localhost:5678/webhook/documents', {
+            headers: { 'Authorization': WEBHOOK_SECRET },
+            signal: AbortSignal.timeout(15000)
+        });
         console.log(`Status: ${r.status}`);
         await r.text();
         console.log('Response body received');
@@ -298,7 +395,7 @@ async function main() {
     try {
         const r = await fetch('http://localhost:5678/webhook/upload', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': WEBHOOK_SECRET },
             body: JSON.stringify({ filename: 'test.txt', fileBase64: 'SGVsbG8gV29ybGQ=', mimeType: 'text/plain' }),
             signal: AbortSignal.timeout(15000)
         });
@@ -312,7 +409,7 @@ async function main() {
     try {
         const r = await fetch('http://localhost:5678/webhook/chat', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': WEBHOOK_SECRET },
             body: JSON.stringify({ message: 'Hello', sessionId: 'test1' }),
             signal: AbortSignal.timeout(120000)
         });
@@ -322,4 +419,16 @@ async function main() {
     } catch (e) { console.log(`Error: ${e.message}`); }
 }
 
-main();
+if (require.main === module) {
+    main();
+}
+
+module.exports = {
+    main,
+    deleteAll,
+    getOrCreateCredential,
+    makeHealthWorkflow,
+    makeDocumentsWorkflow,
+    makeChatWorkflow,
+    makeUploadWorkflow
+};

@@ -1,7 +1,9 @@
 const { randomUUID } = require('crypto');
+const { getOrCreateCredential } = require('./setup-n8n');
 
 const API_KEY = process.env.N8N_API_KEY;
 const BASE = process.env.N8N_BASE_URL || 'http://localhost:5678/api/v1';
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'n8n-webhook-secret-123';
 
 if (!API_KEY) {
     console.error('Error: N8N_API_KEY environment variable is not set.');
@@ -11,6 +13,8 @@ if (!API_KEY) {
 const headers = { 'X-N8N-API-KEY': API_KEY, 'Content-Type': 'application/json' };
 
 async function main() {
+    const credentialId = await getOrCreateCredential();
+
     // Delete old health workflow
     const listRes = await fetch(`${BASE}/workflows`, { headers });
     const { data } = await listRes.json();
@@ -26,7 +30,19 @@ async function main() {
         name: "Health Check",
         nodes: [
             {
-                parameters: { httpMethod: "GET", path: "health", responseMode: "responseNode", options: {} },
+                parameters: {
+                    httpMethod: "GET",
+                    path: "health",
+                    responseMode: "responseNode",
+                    options: {},
+                    authentication: "headerAuth"
+                },
+                credentials: {
+                    headerAuth: {
+                        id: credentialId,
+                        name: "Webhook Auth"
+                    }
+                },
                 type: "n8n-nodes-base.webhook", typeVersion: 2,
                 position: [240, 300], id: randomUUID(), name: "Webhook", webhookId: randomUUID()
             },
@@ -88,7 +104,10 @@ async function main() {
 
     // Test
     console.log('\n--- Testing /webhook/health ---');
-    const r = await fetch('http://localhost:5678/webhook/health', { signal: AbortSignal.timeout(15000) });
+    const r = await fetch('http://localhost:5678/webhook/health', {
+        headers: { 'Authorization': WEBHOOK_SECRET },
+        signal: AbortSignal.timeout(15000)
+    });
     console.log(`Status: ${r.status}`);
     await r.text(); // Consume the body without logging it
     console.log('Response body received');
