@@ -42,9 +42,9 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
       background: 'var(--bg-1)',
       flexShrink: 0,
     }}>
-      <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto' }}>
         {/* Input box */}
-        <div className="chat-input-wrapper" style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '10px 14px' }}>
+        <div className="chat-input-wrapper" style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', padding: '14px 18px' }}>
           <textarea
             ref={textareaRef}
             value={text}
@@ -62,10 +62,10 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
               resize: 'none',
               color: 'var(--t1)',
               fontFamily: 'var(--font)',
-              fontSize: '14px',
+              fontSize: '16px',
               lineHeight: 1.6,
-              minHeight: '24px',
-              maxHeight: '180px',
+              minHeight: '32px',
+              maxHeight: '200px',
             }}
           />
 
@@ -77,8 +77,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             aria-label={t('chat.send') as string}
             className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             style={{
-              width: '36px',
-              height: '36px',
+              width: '48px',
+              height: '48px',
               borderRadius: 'var(--r-md)',
               flexShrink: 0,
               display: 'flex',
@@ -107,13 +107,13 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             }}
           >
             {disabled ? (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                 role="status" aria-label={t('chat.thinking') as string}
                 className="animate-spin">
                 <path d="M21 12a9 9 0 11-6.219-8.56" />
               </svg>
             ) : (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                 strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
@@ -124,7 +124,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
 
         {/* Footer hint */}
         <p style={{
-          textAlign: 'center', fontSize: '11px', marginTop: '8px',
+          textAlign: 'center', fontSize: '13px', marginTop: '8px',
           color: 'var(--t3)', opacity: 0.55, userSelect: 'none',
         }}>
           {t('chat.powered_by') as string}

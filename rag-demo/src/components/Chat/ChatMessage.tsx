@@ -107,8 +107,8 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
         <span className="md-code-lang">{lang}</span>
         <button className="md-copy-btn" onClick={handleCopy}>
           {copied
-            ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-            : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
+            ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+            : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
           {copied ? 'Copied!' : 'Copy'}
         </button>
       </div>
@@ -134,11 +134,11 @@ function ChatMessage({ message }: { message: Message }) {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }} className="group">
         <div style={{ maxWidth: '75%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <div style={{
-            padding: '11px 16px',
+            padding: '16px 22px',
             borderRadius: '18px 18px 4px 18px',
             background: 'linear-gradient(135deg, var(--accent) 0%, #7160fd 100%)',
             color: 'white',
-            fontSize: '14px',
+            fontSize: '16px',
             lineHeight: 1.65,
             whiteSpace: 'pre-wrap',
             fontFamily: 'var(--font)',
@@ -147,7 +147,7 @@ function ChatMessage({ message }: { message: Message }) {
             {message.content}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', padding: '0 4px', flexDirection: 'row-reverse' }}>
-            <span style={{ fontSize: '11px', color: 'var(--t3)', opacity: 0.7 }}>{time}</span>
+            <span style={{ fontSize: '13px', color: 'var(--t3)', opacity: 0.7 }}>{time}</span>
             <button
               onClick={handleCopy}
               className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 hover:bg-[rgba(255,255,255,0.06)]"
@@ -160,8 +160,8 @@ function ChatMessage({ message }: { message: Message }) {
               aria-label="Copy user message"
             >
               {copied
-                ? <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                : <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
+                ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
               {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
@@ -177,12 +177,12 @@ function ChatMessage({ message }: { message: Message }) {
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">
       {/* Avatar */}
       <div style={{
-        width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0, marginTop: '2px',
+        width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0, marginTop: '2px',
         background: 'linear-gradient(135deg, rgba(93,107,254,0.22) 0%, rgba(167,139,250,0.15) 100%)',
         border: '1px solid rgba(93,107,254,0.28)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" strokeWidth="1.8">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" strokeWidth="1.8">
           <path d="M12 2L2 7l10 5 10-5-10-5z" />
           <path d="M2 17l10 5 10-5" />
           <path d="M2 12l10 5 10-5" />
@@ -195,7 +195,7 @@ function ChatMessage({ message }: { message: Message }) {
 
         {/* Meta */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-          <span style={{ fontSize: '11px', color: 'var(--t3)', opacity: 0.6 }}>{time}</span>
+          <span style={{ fontSize: '13px', color: 'var(--t3)', opacity: 0.6 }}>{time}</span>
           <button
             onClick={handleCopy}
             className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 hover:bg-[rgba(255,255,255,0.05)]"
@@ -208,8 +208,8 @@ function ChatMessage({ message }: { message: Message }) {
             aria-label="Copy AI response"
           >
             {copied
-              ? <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-              : <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
+              ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+              : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
             {copied ? 'Copied' : 'Copy'}
           </button>
         </div>

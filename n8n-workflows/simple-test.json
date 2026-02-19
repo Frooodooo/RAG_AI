@@ -1,0 +1,50 @@
+{
+    "name": "Simple Test",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "GET",
+                "path": "test-webhook",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                100,
+                100
+            ],
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ { status: 'OK' } }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                300,
+                100
+            ],
+            "name": "Respond"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    }
+}

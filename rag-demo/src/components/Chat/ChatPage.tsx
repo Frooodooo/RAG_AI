@@ -6,7 +6,7 @@ import ChatInput from './ChatInput'
 import ChatMessage from './ChatMessage'
 import SourcesPanel from './SourcesPanel'
 import SessionSidebar from './SessionSidebar'
-import { StackIcon, ChatBubbleIcon, EditIcon, TrashIcon } from '../Icons'
+import { ChatBubbleIcon, EditIcon, TrashIcon } from '../Icons'
 import { ThinkingIndicator } from './ThinkingIndicator'
 
 interface ChatPageProps {
@@ -63,7 +63,7 @@ export default function ChatPage({ onProcessingChange, onExecution }: ChatPagePr
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {/* Chat subheader */}
         <ChatHeader
-          title={activeSession?.title ?? 'New Chat'}
+          title={activeSession?.title ?? (t('chat.new_chat') as string)}
           messageCount={messages.length}
           onClear={clearSession}
           onRename={(title) => renameSession(activeSessionId, title)}
@@ -72,7 +72,7 @@ export default function ChatPage({ onProcessingChange, onExecution }: ChatPagePr
 
         {/* Messages */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 20px 12px' }}>
+          <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 20px 12px' }}>
             {messages.length === 0 ? (
               <WelcomeScreen loading={loading} onSend={handleSend} t={t} />
             ) : (
@@ -128,7 +128,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
         {/* Icon */}
-        <ChatBubbleIcon width="13" height="13" stroke="var(--t-accent)" strokeWidth="2" style={{ flexShrink: 0 }} />
+        <ChatBubbleIcon width="16" height="16" stroke="var(--t-accent)" strokeWidth="2" style={{ flexShrink: 0 }} />
 
         {isRenaming ? (
           <input
@@ -142,7 +142,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
             }}
             maxLength={80}
             style={{
-              flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 600,
+              flex: 1, minWidth: 0, fontSize: '16px', fontWeight: 600,
               background: 'transparent', outline: 'none', color: 'var(--t1)',
               fontFamily: 'var(--font)', borderBottom: '1px solid var(--b-accent)',
             }}
@@ -153,15 +153,15 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
             title="Click to rename"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}
           >
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--t1)', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--t1)', maxWidth: '420px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {title}
             </span>
-            <EditIcon width="11" height="11" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--t3)', opacity: 0.5, flexShrink: 0 }} />
+            <EditIcon width="14" height="14" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--t3)', opacity: 0.5, flexShrink: 0 }} />
           </button>
         )}
 
         {messageCount > 0 && !isRenaming && (
-          <span style={{ fontSize: '11px', color: 'var(--t3)', flexShrink: 0 }}>
+          <span style={{ fontSize: '13px', color: 'var(--t3)', flexShrink: 0 }}>
             · {messageCount} msg
           </span>
         )}
@@ -171,10 +171,10 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
         <button
           onClick={onClear}
           className="btn btn-ghost"
-          style={{ fontSize: '12px', padding: '5px 11px', marginLeft: '12px', flexShrink: 0 }}
+          style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
           title="Clear conversation"
         >
-          <TrashIcon width="11" height="11" stroke="currentColor" strokeWidth="2" />
+          <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
           {t('chat.clear') as string}
         </button>
       )}
@@ -190,26 +190,35 @@ function WelcomeScreen({ loading, onSend, t }: { loading: boolean; onSend: (t: s
       padding: '60px 20px 40px', textAlign: 'center',
       animation: 'fade-in-up 0.5s ease-out forwards',
     }}>
-      {/* Hero icon */}
+      {/* Rīga Logo */}
       <div style={{
-        width: '72px', height: '72px', borderRadius: '20px', marginBottom: '24px',
+        width: '160px', height: '160px', borderRadius: '32px', marginBottom: '28px',
         background: 'linear-gradient(135deg, rgba(93,107,254,0.2) 0%, rgba(167,139,250,0.15) 100%)',
         border: '1px solid rgba(93,107,254,0.25)',
-        boxShadow: '0 0 60px rgba(93,107,254,0.15)',
+        boxShadow: '0 0 80px rgba(93,107,254,0.18)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <StackIcon width="30" height="30" stroke="var(--accent-2)" strokeWidth="1.5" />
+        <img
+          src="/riga-logo-full.png"
+          alt="Rīgas pašvaldība"
+          style={{
+            width: '120px',
+            height: 'auto',
+            filter: 'invert(1) brightness(100%)',
+            opacity: 0.92,
+          }}
+        />
       </div>
 
-      <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--t1)', letterSpacing: '-0.03em', marginBottom: '10px' }}>
+      <h2 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--t1)', letterSpacing: '-0.03em', marginBottom: '12px' }}>
         {t('chat.welcome_title') as string}
       </h2>
-      <p style={{ maxWidth: '340px', fontSize: '14px', color: 'var(--t2)', lineHeight: 1.65, marginBottom: '36px' }}>
+      <p style={{ maxWidth: '480px', fontSize: '18px', color: 'var(--t2)', lineHeight: 1.65, marginBottom: '40px' }}>
         {t('chat.welcome_desc') as string}
       </p>
 
       {/* Starter question chips */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', width: '100%', maxWidth: '560px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', width: '100%', maxWidth: '800px' }}>
         {([1, 2, 3, 4] as const).map((i) => (
           <StarterChip key={i} text={t(`chat.starter_${i}` as any) as string} label={t('chat.try_asking') as string} disabled={loading} onSend={onSend} />
         ))}
@@ -225,7 +234,7 @@ function StarterChip({ text, label, disabled, onSend }: { text: string; label: s
       onClick={() => onSend(text)}
       disabled={disabled}
       className={`
-        w-full text-left p-[14px_16px] rounded-[var(--r-lg)] border border-[var(--b1)] bg-[var(--bg-2)]
+        w-full text-left p-[20px_24px] rounded-[var(--r-lg)] border border-[var(--b1)] bg-[var(--bg-2)]
         transition-all duration-[180ms] ease-[var(--ease)] [font-family:var(--font)]
         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]
         disabled:cursor-not-allowed disabled:opacity-50
@@ -234,10 +243,10 @@ function StarterChip({ text, label, disabled, onSend }: { text: string; label: s
         cursor-pointer
       `}
     >
-      <span className="block text-[10px] font-bold uppercase tracking-[0.07em] text-[var(--t-accent)] mb-[6px]">
+      <span className="block text-[14px] font-bold uppercase tracking-[0.07em] text-[var(--t-accent)] mb-[8px]">
         {label}
       </span>
-      <span className="text-[13px] text-[var(--t2)] leading-[1.5]">
+      <span className="text-[17px] text-[var(--t2)] leading-[1.5]">
         {text}
       </span>
     </button>

@@ -9,14 +9,14 @@ const fs = require('fs');
 
 // ─── Lazy-load heavy parsers to avoid startup errors if packages missing ───
 let pdfParse, mammoth, XLSX;
-try { pdfParse = require('pdf-parse'); } catch (_) {}
-try { mammoth = require('mammoth'); } catch (_) {}
-try { XLSX = require('xlsx'); } catch (_) {}
+try { pdfParse = require('pdf-parse'); } catch (_) { }
+try { mammoth = require('mammoth'); } catch (_) { }
+try { XLSX = require('xlsx'); } catch (_) { }
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
-const DB_PATH  = path.join(DATA_DIR, 'docs.db');
-const PORT     = process.env.PORT || 3001;
+const DB_PATH = path.join(DATA_DIR, 'docs.db');
+const PORT = process.env.PORT || 3001;
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -116,7 +116,16 @@ app.post('/docs/register', async (req, res) => {
   const existing = db
     .prepare('SELECT id, filename, status, chunks, collection FROM documents WHERE file_hash = ?')
     .get(hash);
+
   if (existing) {
+    // FIX: Ensure file exists in uploads even if DB record exists
+    const existingPath = path.join(DATA_DIR, 'uploads', existing.id);
+    if (!fs.existsSync(existingPath)) {
+      console.log(`[register] Backfilling missing file for existing doc ${existing.id}`);
+      fs.mkdirSync(path.join(DATA_DIR, 'uploads'), { recursive: true });
+      fs.writeFileSync(existingPath, buffer);
+    }
+
     return res.json({
       duplicate: true,
       id: existing.id,
@@ -132,9 +141,15 @@ app.post('/docs/register', async (req, res) => {
   const extractedText = await extractText(buffer, mimeType || '');
 
   // ── Register ──
-  const id         = crypto.randomUUID();
+  const id = crypto.randomUUID();
   const collection = toCollectionName(filename);
   const uploadedAt = new Date().toISOString();
+
+  // ── Save file to disk ──
+  // Ensure we save the file so it can be downloaded later
+  const savePath = path.join(DATA_DIR, 'uploads', id);
+  fs.mkdirSync(path.join(DATA_DIR, 'uploads'), { recursive: true });
+  fs.writeFileSync(savePath, buffer);
 
   db.prepare(`
     INSERT INTO documents (id, filename, file_hash, mime_type, file_size, status, collection, uploaded_at)
@@ -147,16 +162,48 @@ app.post('/docs/register', async (req, res) => {
   }
 
   return res.json({
-    duplicate:     false,
+    duplicate: false,
     id,
     hash,
     collection,
     filename,
-    fileSize:      buffer.length,
-    textLength:    extractedText.length,
+    fileSize: buffer.length,
+    textLength: extractedText.length,
     extractedText: extractedText.slice(0, 500_000), // cap at 500k chars sent to n8n
-    status:        'processing',
+    status: 'processing',
   });
+});
+
+// ─── GET /docs/:id/download ───────────────────────────────────────────────────
+app.get('/docs/:id/download', (req, res) => {
+  const doc = db.prepare('SELECT filename, id FROM documents WHERE id = ?').get(req.params.id);
+  if (!doc) return res.status(404).json({ error: 'Not found' });
+
+  // 1. Try to find in uploads/ (User uploaded)
+  let filePath = path.join(DATA_DIR, 'uploads', doc.id);
+
+  // 2. If not found, check if it exists in a scraped-docs folder (Manual ingestion)
+  // This is a bit hacky because doc-server doesn't track absolute path of ingested files
+  // But we can check if a file with same NAME exists in known locations?
+  // Or check if we have a 'path' column? (We don't).
+
+  if (!fs.existsSync(filePath)) {
+    // Fallback: check ../scraped-docs/filename
+    // Valid only if running locally or if mounted volume matches
+    const scrapedPath = path.resolve(__dirname, '..', 'scraped-docs', doc.filename);
+    if (fs.existsSync(scrapedPath)) {
+      filePath = scrapedPath;
+    } else {
+      // Fallback 2: maybe in current dir?
+      if (fs.existsSync(doc.filename)) filePath = doc.filename;
+    }
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'File content not found on server disk' });
+  }
+
+  res.download(filePath, doc.filename);
 });
 
 // ─── GET /docs ────────────────────────────────────────────────────────────────
@@ -206,12 +253,48 @@ app.patch('/docs/:id/status', (req, res) => {
 });
 
 // ─── DELETE /docs/:id ─────────────────────────────────────────────────────────
-app.delete('/docs/:id', (req, res) => {
-  const doc = db.prepare('SELECT collection FROM documents WHERE id = ?').get(req.params.id);
+app.delete('/docs/:id', async (req, res) => {
+  const docId = req.params.id;
+  const doc = db.prepare('SELECT collection FROM documents WHERE id = ?').get(docId);
   if (!doc) return res.status(404).json({ error: 'Not found' });
 
-  db.prepare('DELETE FROM doc_fts WHERE doc_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM documents WHERE id = ?').run(req.params.id);
+  try {
+    const qdrantUrl = process.env.QDRANT_URL || 'http://localhost:6333';
+    const collectionName = 'rag_docs';
+
+    console.log(`[delete] Removing vectors for doc ${docId} from Qdrant...`);
+    // Use fetch to call Qdrant API
+    const qResp = await fetch(`${qdrantUrl}/collections/${collectionName}/points/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filter: {
+          must: [
+            { key: "doc_id", match: { value: docId } }
+          ]
+        }
+      })
+    });
+
+    if (!qResp.ok) {
+      console.error(`[delete] Qdrant error: ${qResp.status} ${await qResp.text()}`);
+    } else {
+      console.log(`[delete] Vectors removed.`);
+    }
+
+    // 2. Delete file from disk (uploads/docId)
+    const uploadPath = path.join(DATA_DIR, 'uploads', docId);
+    if (fs.existsSync(uploadPath)) {
+      fs.unlinkSync(uploadPath);
+      console.log(`[delete] File deleted from ${uploadPath}`);
+    }
+
+  } catch (err) {
+    console.error(`[delete] Cleanup error:`, err);
+  }
+
+  db.prepare('DELETE FROM doc_fts WHERE doc_id = ?').run(docId);
+  db.prepare('DELETE FROM documents WHERE id = ?').run(docId);
 
   res.json({ ok: true, collection: doc.collection });
 });

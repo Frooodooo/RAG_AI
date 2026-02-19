@@ -56,32 +56,26 @@ else {
     }
 }
 
-# 4. Doc Server (Express + SQLite for document tracking and keyword search)
-Write-Host "[4/6] Starting doc-server..." -ForegroundColor Yellow
-$docServerRunning = docker ps --filter "name=rag-doc-server" --format "{{.Names}}" 2>$null
-if ($docServerRunning -eq "rag-doc-server") {
-    Write-Host "  [OK] doc-server already running on port 3001" -ForegroundColor Green
+# 4. Doc Server (Development Mode - Runs via Node, not Docker)
+Write-Host "[4/6] Starting doc-server (local node)..." -ForegroundColor Yellow
+
+$docServerRunning = Get-Process node -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*doc-server/server.js*" }
+if ($docServerRunning) {
+    Write-Host "  [OK] doc-server is already running." -ForegroundColor Green
 }
 else {
-    docker start rag-doc-server 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "  Creating new doc-server container..." -ForegroundColor Gray
-        docker run -d --name rag-doc-server -p 3001:3001 `
-            -v rag_doc_data:/app/data `
-            --add-host=host.docker.internal:host-gateway `
-            $(docker build -q "c:\Users\Frooodooo\Documents\RAG_AI\doc-server") `
-            2>$null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "  [WARN] doc-server failed to start. Build it first: docker build -t rag-doc-server .\doc-server" -ForegroundColor Red
-        } else {
-            Start-Sleep 2
-            Write-Host "  [OK] doc-server started on port 3001" -ForegroundColor Green
-        }
+    # Install dependencies if node_modules missing
+    if (-not (Test-Path "c:\Users\Frooodooo\Documents\RAG_AI\doc-server\node_modules")) {
+        Write-Host "  Installing doc-server dependencies..." -ForegroundColor Gray
+        Start-Process -FilePath "npm" -ArgumentList "install" -WorkingDirectory "c:\Users\Frooodooo\Documents\RAG_AI\doc-server" -Wait -WindowStyle Hidden
     }
-    else {
-        Start-Sleep 2
-        Write-Host "  [OK] doc-server started on port 3001" -ForegroundColor Green
+   
+    $docServerJob = Start-Job -ScriptBlock {
+        Set-Location "c:\Users\Frooodooo\Documents\RAG_AI"
+        node doc-server/server.js 2>&1 | Tee-Object -FilePath "c:\Users\Frooodooo\Documents\RAG_AI\doc-server.log"
     }
+    Start-Sleep 5
+    Write-Host "  [OK] doc-server started on port 3001 (PID: $($docServerJob.Id))" -ForegroundColor Green
 }
 
 # 5. Vite Dev Server

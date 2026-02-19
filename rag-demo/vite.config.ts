@@ -7,7 +7,7 @@ import path from 'path'
 export default defineConfig(({ mode }) => {
   // Read N8N_API_KEY from rag-demo/.env first, then fall back to parent RAG_AI/.env
   // The key is injected server-side into proxy headers — never exposed to the browser
-  const localEnv  = loadEnv(mode, process.cwd(), '')
+  const localEnv = loadEnv(mode, process.cwd(), '')
   const parentEnv = loadEnv(mode, path.resolve(process.cwd(), '..'), '')
   const n8nApiKey =
     localEnv.N8N_API_KEY ||
@@ -25,6 +25,11 @@ export default defineConfig(({ mode }) => {
         '/webhook': {
           target: 'http://localhost:5678',
           changeOrigin: true,
+        },
+        '/doc-api': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/doc-api/, ''),
         },
         // n8n REST API — API key injected by proxy, never sent to browser
         '/n8n-api': {

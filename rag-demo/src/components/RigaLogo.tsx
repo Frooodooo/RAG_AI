@@ -3,7 +3,7 @@ interface RigaLogoProps {
     className?: string
 }
 
-export default function RigaLogo({ size = 32, className = '' }: RigaLogoProps) {
+export default function RigaLogo({ size = 72, className = '' }: RigaLogoProps) {
     return (
         <img
             src="/riga-logo.png"

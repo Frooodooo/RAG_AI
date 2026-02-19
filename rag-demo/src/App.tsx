@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getHealth } from './api'
 import { useLocale, type Locale } from './i18n'
-import RigaLogo from './components/RigaLogo'
 import ChatPage from './components/Chat/ChatPage'
 import WorkflowVisualizer from './components/WorkflowViz/WorkflowVisualizer'
 import DocumentsPage from './components/Documents/DocumentsPage'
@@ -14,7 +13,7 @@ const NAV_ITEMS: { id: Tab; labelKey: string; icon: React.ReactNode }[] = [
     id: 'chat',
     labelKey: 'nav.chat',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
       </svg>
     ),
@@ -23,7 +22,7 @@ const NAV_ITEMS: { id: Tab; labelKey: string; icon: React.ReactNode }[] = [
     id: 'workflow',
     labelKey: 'nav.workflow',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
         <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
       </svg>
@@ -33,7 +32,7 @@ const NAV_ITEMS: { id: Tab; labelKey: string; icon: React.ReactNode }[] = [
     id: 'documents',
     labelKey: 'nav.documents',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
         <polyline points="14 2 14 8 20 8" />
         <line x1="16" y1="13" x2="8" y2="13" />
@@ -74,8 +73,8 @@ function App() {
         <div style={{ marginBottom: '4px' }}>
           <div
             style={{
-              width: '38px',
-              height: '38px',
+              width: '56px',
+              height: '56px',
               borderRadius: 'var(--r-md)',
               background: 'rgba(93,107,254,0.12)',
               border: '1px solid rgba(93,107,254,0.2)',
@@ -85,7 +84,11 @@ function App() {
               boxShadow: '0 0 20px rgba(93,107,254,0.12)',
             }}
           >
-            <RigaLogo size={22} />
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" strokeWidth="1.8">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
           </div>
         </div>
 
@@ -123,8 +126,8 @@ function App() {
                 key={lang}
                 onClick={() => setLocale(lang)}
                 style={{
-                  padding: '4px 7px',
-                  fontSize: '10px',
+                  padding: '6px 10px',
+                  fontSize: '13px',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
@@ -171,22 +174,22 @@ function App() {
               flexShrink: 0,
             }}>
               <div style={{
-                width: '28px', height: '28px',
+                width: '40px', height: '40px',
                 borderRadius: 'var(--r-sm)',
                 background: 'var(--accent-dim)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'var(--accent-2)',
               }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="3" />
                   <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
                 </svg>
               </div>
               <div>
-                <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.01em' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.01em' }}>
                   {t('wf.title') as string}
                 </h2>
-                <p style={{ fontSize: '12px', color: 'var(--t3)', marginTop: '1px' }}>
+                <p style={{ fontSize: '14px', color: 'var(--t3)', marginTop: '1px' }}>
                   {t('wf.description') as string}
                 </p>
               </div>
@@ -202,7 +205,7 @@ function App() {
                   background: 'var(--accent-dim)',
                   border: '1px solid rgba(93,107,254,0.2)',
                 }}>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-2)' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent-2)' }}>
                     Processing
                   </span>
                   <span className="typing-dots">
@@ -212,10 +215,10 @@ function App() {
               )}
             </div>
             <WorkflowVisualizer
-                isActive={isChatProcessing}
-                executionId={executionId}
-                workflowType={activeWorkflow}
-              />
+              isActive={isChatProcessing}
+              executionId={executionId}
+              workflowType={activeWorkflow}
+            />
           </div>
         )}
 
@@ -237,7 +240,7 @@ function HealthPip({ label, status }: { label: string; status?: string }) {
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', cursor: 'default' }}
     >
       <div className={dotClass} />
-      <span style={{ fontSize: '9px', color: 'var(--t3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <span style={{ fontSize: '12px', color: 'var(--t3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {label}
       </span>
     </div>

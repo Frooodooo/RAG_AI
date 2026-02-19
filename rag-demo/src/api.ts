@@ -8,6 +8,8 @@ const api = axios.create({
     },
 });
 
+const DOC_SERVER = '/doc-api';
+
 /** POST /webhook/chat → {answer, sources[], executionId?} */
 export async function sendChat(message: string, sessionId: string) {
     const { data } = await api.post<{
@@ -52,11 +54,23 @@ export interface ApiDocument {
     error?: string | null;
 }
 
-/** GET /webhook/documents → ApiDocument[] */
+/** GET http://localhost:3001/docs → ApiDocument[] */
 export async function getDocs() {
     try {
-        const { data } = await api.get<ApiDocument[]>('/webhook/documents');
-        return Array.isArray(data) ? data : [];
+        const { data } = await axios.get(`${DOC_SERVER}/docs`);
+        // Map snake_case from doc-server to camelCase for frontend
+        return Array.isArray(data) ? data.map((d: any) => ({
+            id: d.id,
+            filename: d.filename,
+            type: d.mime_type, // or derive from filename
+            chunks: d.chunks,
+            date: d.uploaded_at,
+            status: d.status,
+            fileSize: d.file_size,
+            collection: d.collection,
+            indexedAt: d.indexed_at,
+            error: d.error_message
+        })) : [];
     } catch (error) {
         console.error('Failed to fetch documents:', error);
         throw error;
@@ -72,12 +86,12 @@ export interface SearchResult {
     score: number;
 }
 
-/** POST /webhook/doc-search → SearchResult[]
+/** POST http://localhost:3001/docs/search → SearchResult[]
  *  Full-text search over indexed document text.
  *  Pass docId to scope the search to a single document.
  */
 export async function searchInDocs(query: string, docId?: string, limit = 10) {
-    const { data } = await api.post<SearchResult[]>('/webhook/doc-search', {
+    const { data } = await axios.post<SearchResult[]>(`${DOC_SERVER}/docs/search`, {
         query,
         docId: docId || null,
         limit,
@@ -85,9 +99,9 @@ export async function searchInDocs(query: string, docId?: string, limit = 10) {
     return Array.isArray(data) ? data : [];
 }
 
-/** DELETE /webhook/doc-delete  (proxied via n8n → doc-server) */
+/** DELETE http://localhost:3001/docs/:id */
 export async function deleteDoc(id: string) {
-    const { data } = await api.post('/webhook/doc-delete', { id });
+    const { data } = await axios.delete(`${DOC_SERVER}/docs/${id}`);
     return data;
 }
 

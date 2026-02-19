@@ -4,13 +4,16 @@
         {
             "parameters": {
                 "httpMethod": "POST",
-                "path": "upload",
+                "path": "upload-doc",
                 "responseMode": "responseNode",
                 "options": {}
             },
             "type": "n8n-nodes-base.webhook",
             "typeVersion": 2,
-            "position": [240, 300],
+            "position": [
+                240,
+                300
+            ],
             "name": "Webhook"
         },
         {
@@ -19,7 +22,10 @@
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
-            "position": [460, 300],
+            "position": [
+                460,
+                300
+            ],
             "name": "Extract Input"
         },
         {
@@ -28,12 +34,17 @@
                 "url": "http://host.docker.internal:3001/docs/register",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ JSON.stringify({ filename: $json.filename, fileBase64: $json.fileBase64, mimeType: $json.mimeType }) }}",
-                "options": { "timeout": 60000 }
+                "jsonBody": "={{ { filename: $json.filename, fileBase64: $json.fileBase64, mimeType: $json.mimeType } }}",
+                "options": {
+                    "timeout": 60000
+                }
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
-            "position": [680, 300],
+            "position": [
+                680,
+                300
+            ],
             "name": "Register Document",
             "onError": "continueRegularOutput"
         },
@@ -61,7 +72,10 @@
             },
             "type": "n8n-nodes-base.if",
             "typeVersion": 2,
-            "position": [900, 300],
+            "position": [
+                900,
+                300
+            ],
             "name": "Is Duplicate?"
         },
         {
@@ -72,7 +86,10 @@
             },
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1.1,
-            "position": [1120, 160],
+            "position": [
+                1120,
+                160
+            ],
             "name": "Respond Duplicate"
         },
         {
@@ -83,7 +100,10 @@
             },
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1.1,
-            "position": [1120, 440],
+            "position": [
+                1120,
+                440
+            ],
             "name": "Respond Processing"
         },
         {
@@ -92,7 +112,10 @@
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
-            "position": [1340, 440],
+            "position": [
+                1340,
+                440
+            ],
             "name": "Chunk and Embed"
         },
         {
@@ -101,12 +124,17 @@
                 "url": "http://host.docker.internal:6333/collections/rag_docs",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={\"vectors\": {\"size\": 768, \"distance\": \"Cosine\"}}",
-                "options": { "timeout": 15000 }
+                "jsonBody": "={{ { vectors: { size: 768, distance: 'Cosine' } } }}",
+                "options": {
+                    "timeout": 15000
+                }
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
-            "position": [1560, 440],
+            "position": [
+                1560,
+                440
+            ],
             "name": "Create Qdrant Collection",
             "onError": "continueRegularOutput"
         },
@@ -116,7 +144,10 @@
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
-            "position": [1780, 440],
+            "position": [
+                1780,
+                440
+            ],
             "name": "Check Has Points"
         },
         {
@@ -125,12 +156,17 @@
                 "url": "http://host.docker.internal:6333/collections/rag_docs/points",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ JSON.stringify({ points: $json.points }) }}",
-                "options": { "timeout": 60000 }
+                "jsonBody": "={{ { points: $json.points } }}",
+                "options": {
+                    "timeout": 60000
+                }
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
-            "position": [2000, 440],
+            "position": [
+                2000,
+                440
+            ],
             "name": "Insert Qdrant Points",
             "onError": "continueRegularOutput"
         },
@@ -140,12 +176,17 @@
                 "url": "=http://host.docker.internal:3001/docs/{{ $('Check Has Points').first().json.docId }}/status",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ JSON.stringify({ status: 'ready', chunks: $('Check Has Points').first().json.totalChunks }) }}",
-                "options": { "timeout": 10000 }
+                "jsonBody": "={{ { status: 'ready', chunks: $('Check Has Points').first().json.totalChunks } }}",
+                "options": {
+                    "timeout": 10000
+                }
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
-            "position": [2220, 440],
+            "position": [
+                2220,
+                440
+            ],
             "name": "Update Status Ready",
             "onError": "continueRegularOutput"
         }
@@ -153,48 +194,108 @@
     "connections": {
         "Webhook": {
             "main": [
-                [{ "node": "Extract Input", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Extract Input",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Extract Input": {
             "main": [
-                [{ "node": "Register Document", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Register Document",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Register Document": {
             "main": [
-                [{ "node": "Is Duplicate?", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Is Duplicate?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Is Duplicate?": {
             "main": [
-                [{ "node": "Respond Duplicate", "type": "main", "index": 0 }],
-                [{ "node": "Respond Processing", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Respond Duplicate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Respond Processing",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Respond Processing": {
             "main": [
-                [{ "node": "Chunk and Embed", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Chunk and Embed",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Chunk and Embed": {
             "main": [
-                [{ "node": "Create Qdrant Collection", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Create Qdrant Collection",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Create Qdrant Collection": {
             "main": [
-                [{ "node": "Check Has Points", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Check Has Points",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Check Has Points": {
             "main": [
-                [{ "node": "Insert Qdrant Points", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Insert Qdrant Points",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Insert Qdrant Points": {
             "main": [
-                [{ "node": "Update Status Ready", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Update Status Ready",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         }
     },

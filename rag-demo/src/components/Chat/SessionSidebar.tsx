@@ -132,12 +132,12 @@ function SessionItem({
         >
             {/* Chat icon */}
             <ChatBubbleIcon
-                width="13" height="13"
+                width="16" height="16"
                 style={{ color: isActive ? 'var(--text-accent)' : 'var(--text-muted)', flexShrink: 0, marginTop: '3px' }}
             />
 
             {/* Session info */}
-            <div className="flex-1 min-w-0 pr-6">
+            <div className="flex-1 min-w-0 pr-10">
                 {isRenaming ? (
                     <RenameInput
                         initialValue={session.title}
@@ -147,13 +147,13 @@ function SessionItem({
                 ) : (
                     <>
                         <div
-                            className="text-xs font-medium truncate leading-tight"
+                            className="text-sm font-medium truncate leading-tight"
                             style={{ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}
                             title={session.title}
                         >
                             {session.title}
                         </div>
-                        <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                        <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                             {session.messages.length > 0
                                 ? `${session.messages.length} msg · ${formatRelativeTime(session.updatedAt)}`
                                 : formatRelativeTime(session.createdAt)}
@@ -165,11 +165,11 @@ function SessionItem({
             {/* Action buttons — shown on hover or if confirming */}
             {!isRenaming && (
                 <div
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 transition-opacity duration-150 ease-out ${
-                        deletePhase === 'confirm'
-                            ? 'opacity-100'
-                            : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
-                    }`}
+                    className={`absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 transition-opacity duration-150 ease-out ${deletePhase === 'confirm'
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+                        }`}
+                    style={{ background: 'var(--bg-1)', borderRadius: '6px', padding: '2px' }}
                 >
                     <div className="action-btns flex items-center gap-1">
                         {deletePhase === 'confirm' ? (
@@ -178,31 +178,31 @@ function SessionItem({
                                 <button
                                     onClick={cancelDelete}
                                     title="Cancel"
-                                    className="w-5 h-5 flex items-center justify-center rounded transition-all"
+                                    className="w-7 h-7 flex items-center justify-center rounded transition-all"
                                     style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
                                 >
-                                    <XIcon width="9" height="9" strokeWidth="2.5" />
+                                    <XIcon width="12" height="12" strokeWidth="2.5" />
                                 </button>
                                 {/* Confirm delete */}
                                 <button
                                     onClick={handleDeleteClick}
                                     title="Confirm delete"
-                                    className="w-5 h-5 flex items-center justify-center rounded transition-all"
+                                    className="w-7 h-7 flex items-center justify-center rounded transition-all"
                                     style={{ background: 'var(--accent-rose)', color: 'white', border: 'none', cursor: 'pointer' }}
                                 >
-                                    <CheckIcon width="9" height="9" strokeWidth="3" />
+                                    <CheckIcon width="12" height="12" strokeWidth="3" />
                                 </button>
                             </>
                         ) : (
                             <button
                                 onClick={handleDeleteClick}
                                 title="Delete conversation"
-                                className="w-5 h-5 flex items-center justify-center rounded transition-all"
+                                className="w-7 h-7 flex items-center justify-center rounded transition-all"
                                 style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
                                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-rose)')}
                                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                             >
-                                <TrashIcon width="10" height="10" strokeWidth="2.5" />
+                                <TrashIcon width="13" height="13" strokeWidth="2.5" />
                             </button>
                         )}
                     </div>
@@ -267,7 +267,7 @@ export default function SessionSidebar({
                     }}
                 >
                     {/* Sidebar icon */}
-                    <SidebarIcon width="16" height="16" strokeWidth="2" />
+                    <SidebarIcon width="20" height="20" strokeWidth="2" />
                 </button>
 
                 {/* New Chat button — only when expanded */}
@@ -275,7 +275,7 @@ export default function SessionSidebar({
                     <button
                         onClick={onNew}
                         title="New chat"
-                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-sm font-semibold transition-all"
                         style={{
                             background: 'var(--accent-primary)',
                             color: 'white',
@@ -285,7 +285,7 @@ export default function SessionSidebar({
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--accent-secondary)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--accent-primary)')}
                     >
-                        <PlusIcon width="12" height="12" strokeWidth="2.5" />
+                        <PlusIcon width="16" height="16" strokeWidth="2.5" />
                         {t('chat.new_chat') as string}
                     </button>
                 )}
@@ -305,7 +305,7 @@ export default function SessionSidebar({
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--accent-secondary)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--accent-primary)')}
                     >
-                        <PlusIcon width="13" height="13" strokeWidth="2.5" />
+                        <PlusIcon width="16" height="16" strokeWidth="2.5" />
                     </button>
                 )}
             </div>
@@ -319,14 +319,14 @@ export default function SessionSidebar({
                             className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
                             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)' }}
                         >
-                            <SearchIcon width="11" height="11" strokeWidth="2"
+                            <SearchIcon width="14" height="14" strokeWidth="2"
                                 style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search…"
-                                className="flex-1 bg-transparent border-none outline-none text-xs"
+                                className="flex-1 bg-transparent border-none outline-none text-sm"
                                 style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}
                             />
                             {search && (
@@ -362,7 +362,7 @@ export default function SessionSidebar({
 
                 {/* Footer */}
                 <div className="px-3 py-2 shrink-0" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                    <p className="text-[10px] text-center" style={{ color: 'var(--text-muted)' }}>
+                    <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
                         {t('chat.history_saved') as string}
                         {sessions.length > 0 && (
                             <span className="ml-1 opacity-60">· {sessions.length}</span>
