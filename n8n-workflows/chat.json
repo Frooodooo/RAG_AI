@@ -74,7 +74,7 @@
         },
         {
             "parameters": {
-                "jsCode": "const ollamaResp = $input.first().json;\nconst answer  = ollamaResp.message?.content || 'Sorry, I could not generate a response.';\nconst sources = $('Build RAG Prompt').first().json.sources || [];\nreturn [{ json: { answer, sources } }];"
+                "jsCode": "const ollamaResp = $input.first().json;\nconst answer  = ollamaResp.message?.content || 'Sorry, I could not generate a response.';\nconst sources = $('Build RAG Prompt').first().json.sources || [];\nreturn [{ json: { answer, sources, executionId: $execution.id } }];"
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
