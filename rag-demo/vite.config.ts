@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    host: true,         // listen on 0.0.0.0 — required for LAN access
+    allowedHosts: true, // allow Cloudflare tunnel hostnames (*.trycloudflare.com)
     port: 3000,
     proxy: {
       '/webhook': {
