@@ -1,4 +1,4 @@
-import { useState, memo } from 'react'
+import { useState, memo, useId } from 'react'
 import { useLocale } from '../../i18n'
 
 interface Source { file: string; excerpt: string; score: number }
@@ -6,6 +6,7 @@ interface Source { file: string; excerpt: string; score: number }
 function SourcesPanel({ sources }: { sources: Source[] }) {
   const { t } = useLocale()
   const [expanded, setExpanded] = useState(false)
+  const listId = useId()
 
   if (!sources || sources.length === 0) return null
 
@@ -20,6 +21,9 @@ function SourcesPanel({ sources }: { sources: Source[] }) {
       {/* Toggle button */}
       <button
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        aria-controls={listId}
+        className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)] rounded-[var(--r-sm)]"
         style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
@@ -31,6 +35,7 @@ function SourcesPanel({ sources }: { sources: Source[] }) {
         onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.75' }}
       >
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+          aria-hidden="true"
           style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 200ms' }}>
           <polyline points="9 18 15 12 9 6" />
         </svg>
@@ -39,7 +44,7 @@ function SourcesPanel({ sources }: { sources: Source[] }) {
       </button>
 
       {expanded && (
-        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px', animation: 'fade-in-up 0.25s ease-out forwards' }}>
+        <div id={listId} style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px', animation: 'fade-in-up 0.25s ease-out forwards' }}>
           {sources.map((source, idx) => {
             const { color } = getScore(source.score)
             return (
