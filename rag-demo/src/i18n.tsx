@@ -32,6 +32,7 @@ const translations = {
         'chat.clear': 'Notīrīt',
         'chat.try_asking': 'Jautājiet',
         'chat.history_saved': 'Vēsture saglabāta lokāli',
+        'chat.hint': '· Enter lai nosūtītu · Shift+Enter jaunai rindai · / lai fokusētu',
 
         // Documents
         'docs.title': 'Dokumentu pārvaldība',
@@ -81,6 +82,7 @@ const translations = {
         'chat.clear': 'Clear',
         'chat.try_asking': 'Try asking',
         'chat.history_saved': 'History saved locally',
+        'chat.hint': '· Enter to send · Shift+Enter for newline · / to focus',
 
         // Documents
         'docs.title': 'Document Management',

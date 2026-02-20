@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLocale } from '../../i18n'
 
 interface ChatInputProps {
@@ -11,7 +11,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [text, setText] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = textareaRef.current
     if (el) {
       el.style.height = 'auto'
@@ -20,6 +20,21 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   }, [text])
 
   useEffect(() => { textareaRef.current?.focus() }, [])
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === '/' &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        e.preventDefault()
+        textareaRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown)
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [])
 
   const handleSubmit = () => {
     const trimmed = text.trim()
@@ -90,7 +105,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         {/* Footer hint */}
         <p className="text-center text-[13px] mt-2 text-[var(--t3)] opacity-55 select-none">
           {t('chat.powered_by') as string}
-          <span className="ml-2 opacity-70">· Enter to send · Shift+Enter for newline</span>
+          <span className="ml-2 opacity-70">{t('chat.hint') as string}</span>
         </p>
       </div>
     </div>
