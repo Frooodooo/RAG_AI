@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { useDropzone, type FileRejection } from 'react-dropzone'
 import { uploadFileAPI as uploadDocument } from '../../api'
 import { useLocale } from '../../i18n'
 
@@ -15,6 +15,7 @@ export default function UploadZone({ onUploadComplete, onExecution }: UploadZone
   const [stage, setStage] = useState<UploadStage>('idle')
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [rejectedMsg, setRejectedMsg] = useState<string | null>(null)
 
   const isActive = stage === 'uploading' || stage === 'processing'
 
@@ -61,18 +62,36 @@ export default function UploadZone({ onUploadComplete, onExecution }: UploadZone
     }, 5000)
   }, [onUploadComplete, onExecution])
 
+  const onDropRejected = useCallback((rejectedFiles: FileRejection[]) => {
+    const names = rejectedFiles.map(f => f.file.name).join(', ')
+    setRejectedMsg(
+      locale === 'lv'
+        ? `Noraidīts: ${names} — atbalstītie formāti: PDF, DOCX, XLSX, XLS, TXT, MD`
+        : `Rejected: ${names} — supported formats: PDF, DOCX, XLSX, XLS, TXT, MD`
+    )
+    setTimeout(() => setRejectedMsg(null), 6000)
+  }, [locale])
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: {
       'application/pdf': ['.pdf'],
+      // Word (modern .docx)
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      // Excel (modern .xlsx)
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      // Excel (legacy .xls) — SheetJS handles both formats server-side
+      'application/vnd.ms-excel': ['.xls'],
       'text/plain': ['.txt'],
       'text/markdown': ['.md'],
+      // Windows Chrome fallback: Office files sometimes reported as octet-stream or empty MIME
+      // react-dropzone issue #991 — extension matching catches these
+      'application/octet-stream': ['.docx', '.xlsx', '.xls', '.pdf'],
     },
     maxFiles: 20,
     disabled: isActive,
-    useFsAccessApi: false,  // Chrome on Windows returns empty MIME for .md/.txt without this
+    useFsAccessApi: false,  // Chrome on Windows returns empty/wrong MIME for Office files without this
   })
 
   // ── Labels ──────────────────────────────────────────────────────────────────
@@ -95,8 +114,8 @@ export default function UploadZone({ onUploadComplete, onExecution }: UploadZone
     if (stage === 'done' || stage === 'partial') return locale === 'lv' ? 'Dokumenti parādīsies sarakstā drīz' : 'Documents will appear in the list shortly'
     if (stage === 'error') return locale === 'lv' ? 'Lūdzu, mēģiniet vēlreiz' : 'Please try again'
     return locale === 'lv'
-      ? 'Velciet failus šeit vai noklikšķiniet — PDF, DOCX, XLSX, TXT, MD'
-      : 'Drag files here or click to browse — PDF, DOCX, XLSX, TXT, MD'
+      ? 'Velciet failus šeit vai noklikšķiniet — PDF, DOCX, XLSX, XLS, TXT, MD'
+      : 'Drag files here or click to browse — PDF, DOCX, XLSX, XLS, TXT, MD'
   }
 
   // ── Colors ───────────────────────────────────────────────────────────────────
@@ -285,6 +304,19 @@ export default function UploadZone({ onUploadComplete, onExecution }: UploadZone
           fontSize: '14px', textAlign: 'center',
         }}>
           {errorMsg}
+        </div>
+      )}
+
+      {rejectedMsg && (
+        <div style={{
+          marginTop: '12px', padding: '10px 14px',
+          borderRadius: 'var(--r-md)',
+          background: 'rgba(251,191,36,0.08)',
+          border: '1px solid rgba(251,191,36,0.3)',
+          color: 'rgba(251,191,36,0.9)',
+          fontSize: '14px', textAlign: 'center',
+        }}>
+          {rejectedMsg}
         </div>
       )}
     </div>
