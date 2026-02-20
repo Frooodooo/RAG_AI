@@ -178,31 +178,34 @@ function SessionItem({
                                 <button
                                     onClick={cancelDelete}
                                     title="Cancel"
+                                    aria-label="Cancel delete"
                                     className="w-7 h-7 flex items-center justify-center rounded transition-all"
                                     style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
                                 >
-                                    <XIcon width="12" height="12" strokeWidth="2.5" />
+                                    <XIcon width="12" height="12" strokeWidth="2.5" aria-hidden="true" />
                                 </button>
                                 {/* Confirm delete */}
                                 <button
                                     onClick={handleDeleteClick}
                                     title="Confirm delete"
+                                    aria-label="Confirm delete"
                                     className="w-7 h-7 flex items-center justify-center rounded transition-all"
                                     style={{ background: 'var(--accent-rose)', color: 'white', border: 'none', cursor: 'pointer' }}
                                 >
-                                    <CheckIcon width="12" height="12" strokeWidth="3" />
+                                    <CheckIcon width="12" height="12" strokeWidth="3" aria-hidden="true" />
                                 </button>
                             </>
                         ) : (
                             <button
                                 onClick={handleDeleteClick}
                                 title="Delete conversation"
+                                aria-label="Delete conversation"
                                 className="w-7 h-7 flex items-center justify-center rounded transition-all"
                                 style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
                                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-rose)')}
                                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                             >
-                                <TrashIcon width="13" height="13" strokeWidth="2.5" />
+                                <TrashIcon width="13" height="13" strokeWidth="2.5" aria-hidden="true" />
                             </button>
                         )}
                     </div>
@@ -250,6 +253,7 @@ export default function SessionSidebar({
                 <button
                     onClick={toggleCollapse}
                     title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0"
                     style={{
                         background: 'transparent',
@@ -267,7 +271,7 @@ export default function SessionSidebar({
                     }}
                 >
                     {/* Sidebar icon */}
-                    <SidebarIcon width="20" height="20" strokeWidth="2" />
+                    <SidebarIcon width="20" height="20" strokeWidth="2" aria-hidden="true" />
                 </button>
 
                 {/* New Chat button — only when expanded */}
@@ -285,7 +289,7 @@ export default function SessionSidebar({
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--accent-secondary)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--accent-primary)')}
                     >
-                        <PlusIcon width="16" height="16" strokeWidth="2.5" />
+                        <PlusIcon width="16" height="16" strokeWidth="2.5" aria-hidden="true" />
                         {t('chat.new_chat') as string}
                     </button>
                 )}
@@ -295,6 +299,7 @@ export default function SessionSidebar({
                     <button
                         onClick={onNew}
                         title="New chat"
+                        aria-label={t('chat.new_chat') as string}
                         className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0"
                         style={{
                             background: 'var(--accent-primary)',
@@ -305,7 +310,7 @@ export default function SessionSidebar({
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--accent-secondary)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--accent-primary)')}
                     >
-                        <PlusIcon width="16" height="16" strokeWidth="2.5" />
+                        <PlusIcon width="16" height="16" strokeWidth="2.5" aria-hidden="true" />
                     </button>
                 )}
             </div>
@@ -320,12 +325,13 @@ export default function SessionSidebar({
                             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)' }}
                         >
                             <SearchIcon width="14" height="14" strokeWidth="2"
-                                style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                                style={{ color: 'var(--text-muted)', flexShrink: 0 }} aria-hidden="true" />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search…"
+                                aria-label="Search conversations"
                                 className="flex-1 bg-transparent border-none outline-none text-sm"
                                 style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}
                             />
