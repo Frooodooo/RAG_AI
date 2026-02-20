@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, memo } from 'react'
 import { useLocale } from '../../i18n'
 import { formatRelativeTime } from '../../utils/date'
 import type { ChatSession } from '../../hooks/useChatSessions'
@@ -57,7 +57,8 @@ function RenameInput({
 }
 
 // ── Session Item ──────────────────────────────────────────────────────────────
-function SessionItem({
+// Memoized to prevent unnecessary re-renders of the entire list when sidebar state (e.g. search) changes.
+const SessionItem = memo(function SessionItem({
     session,
     isActive,
     onSelect,
@@ -66,9 +67,9 @@ function SessionItem({
 }: {
     session: ChatSession
     isActive: boolean
-    onSelect: () => void
-    onDelete: () => void
-    onRename: (title: string) => void
+    onSelect: (id: string) => void
+    onDelete: (id: string) => void
+    onRename: (id: string, newTitle: string) => void
 }) {
     const [isRenaming, setIsRenaming] = useState(false)
     const [deletePhase, setDeletePhase] = useState<'idle' | 'confirm'>('idle')
@@ -87,7 +88,7 @@ function SessionItem({
             // Second click → actually delete
             if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
             setDeletePhase('idle')
-            onDelete()
+            onDelete(session.id)
         } else {
             // First click → enter confirm phase with 4s timeout
             setDeletePhase('confirm')
@@ -105,12 +106,12 @@ function SessionItem({
         <div
             role="listitem"
             tabIndex={0}
-            onClick={() => { if (!isRenaming) onSelect() }}
+            onClick={() => { if (!isRenaming) onSelect(session.id) }}
             onDoubleClick={(e) => { e.preventDefault(); setIsRenaming(true) }}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
-                    if (!isRenaming) onSelect()
+                    if (!isRenaming) onSelect(session.id)
                 }
             }}
             className="group relative flex items-start gap-2.5 mx-1.5 mb-0.5 px-3 py-2.5 rounded-lg cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-primary)]"
@@ -141,7 +142,7 @@ function SessionItem({
                 {isRenaming ? (
                     <RenameInput
                         initialValue={session.title}
-                        onCommit={(val) => { onRename(val); setIsRenaming(false) }}
+                        onCommit={(val) => { onRename(session.id, val); setIsRenaming(false) }}
                         onCancel={() => setIsRenaming(false)}
                     />
                 ) : (
@@ -213,7 +214,7 @@ function SessionItem({
             )}
         </div>
     )
-}
+})
 
 // ── Main Sidebar ──────────────────────────────────────────────────────────────
 export default function SessionSidebar({
@@ -359,9 +360,9 @@ export default function SessionSidebar({
                             key={session.id}
                             session={session}
                             isActive={session.id === activeSessionId}
-                            onSelect={() => onSelect(session.id)}
-                            onDelete={() => onDelete(session.id)}
-                            onRename={(title) => onRename(session.id, title)}
+                            onSelect={onSelect}
+                            onDelete={onDelete}
+                            onRename={onRename}
                         />
                     ))}
                 </div>
