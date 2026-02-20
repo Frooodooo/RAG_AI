@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { useLocale } from '../../i18n'
 
 interface ChatInputProps {
@@ -11,7 +11,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [text, setText] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  useEffect(() => {
+  // Use useLayoutEffect to prevent layout shift/flicker (FOUC) when resizing
+  useLayoutEffect(() => {
     const el = textareaRef.current
     if (el) {
       el.style.height = 'auto'
