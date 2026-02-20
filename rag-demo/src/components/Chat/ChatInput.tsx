@@ -36,15 +36,14 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const canSend = text.trim().length > 0 && !disabled
 
   return (
-    <div style={{
-      padding: '12px 20px 14px',
-      borderTop: '1px solid var(--b1)',
-      background: 'var(--bg-1)',
-      flexShrink: 0,
-    }}>
-      <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+    <div
+      className="p-[12px_20px_14px] border-t border-[var(--b1)] bg-[var(--bg-1)] shrink-0"
+    >
+      <div className="max-w-[960px] mx-auto">
         {/* Input box */}
-        <div className="chat-input-wrapper" style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', padding: '14px 18px' }}>
+        <div
+          className="chat-input-wrapper flex items-end gap-3 p-[14px_18px]"
+        >
           <textarea
             ref={textareaRef}
             value={text}
@@ -54,19 +53,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             aria-label={t('chat.placeholder') as string}
             disabled={disabled}
             rows={1}
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              color: 'var(--t1)',
-              fontFamily: 'var(--font)',
-              fontSize: '16px',
-              lineHeight: 1.6,
-              minHeight: '32px',
-              maxHeight: '200px',
-            }}
+            className="flex-1 bg-transparent border-none outline-none resize-none text-[var(--t1)] [font-family:var(--font)] text-[16px] leading-[1.6] min-h-[32px] max-h-[200px]"
           />
 
           {/* Send button */}
@@ -75,36 +62,14 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             disabled={!canSend}
             title={t('chat.send') as string}
             aria-label={t('chat.send') as string}
-            className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: 'var(--r-md)',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none',
-              cursor: canSend ? 'pointer' : 'not-allowed',
-              background: canSend
-                ? 'linear-gradient(135deg, var(--accent) 0%, #7160fd 100%)'
-                : 'rgba(255,255,255,0.05)',
-              color: canSend ? 'white' : 'var(--t3)',
-              boxShadow: canSend ? '0 2px 12px rgba(93,107,254,0.4)' : 'none',
-              transition: 'all 150ms var(--ease)',
-            }}
-            onMouseEnter={(e) => {
-              if (canSend) {
-                e.currentTarget.style.transform = 'translateY(-1px)'
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(93,107,254,0.5)'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (canSend) {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 2px 12px rgba(93,107,254,0.4)'
-              }
-            }}
+            className={`
+              w-12 h-12 rounded-[var(--r-md)] shrink-0 flex items-center justify-center border-none
+              transition-all duration-150 ease-[var(--ease)]
+              focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]
+              disabled:cursor-not-allowed disabled:bg-[rgba(255,255,255,0.05)] disabled:text-[var(--t3)] disabled:shadow-none
+              enabled:cursor-pointer enabled:bg-[linear-gradient(135deg,var(--accent)_0%,#7160fd_100%)] enabled:text-white enabled:shadow-[0_2px_12px_rgba(93,107,254,0.4)]
+              enabled:hover:-translate-y-px enabled:hover:shadow-[0_4px_20px_rgba(93,107,254,0.5)]
+            `}
           >
             {disabled ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
@@ -123,12 +88,9 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         </div>
 
         {/* Footer hint */}
-        <p style={{
-          textAlign: 'center', fontSize: '13px', marginTop: '8px',
-          color: 'var(--t3)', opacity: 0.55, userSelect: 'none',
-        }}>
+        <p className="text-center text-[13px] mt-2 text-[var(--t3)] opacity-55 select-none">
           {t('chat.powered_by') as string}
-          <span style={{ marginLeft: '8px', opacity: 0.7 }}>· Enter to send · Shift+Enter for newline</span>
+          <span className="ml-2 opacity-70">· Enter to send · Shift+Enter for newline</span>
         </p>
       </div>
     </div>
