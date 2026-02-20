@@ -75,36 +75,16 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             disabled={!canSend}
             title={t('chat.send') as string}
             aria-label={t('chat.send') as string}
-            className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: 'var(--r-md)',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none',
-              cursor: canSend ? 'pointer' : 'not-allowed',
-              background: canSend
-                ? 'linear-gradient(135deg, var(--accent) 0%, #7160fd 100%)'
-                : 'rgba(255,255,255,0.05)',
-              color: canSend ? 'white' : 'var(--t3)',
-              boxShadow: canSend ? '0 2px 12px rgba(93,107,254,0.4)' : 'none',
-              transition: 'all 150ms var(--ease)',
-            }}
-            onMouseEnter={(e) => {
-              if (canSend) {
-                e.currentTarget.style.transform = 'translateY(-1px)'
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(93,107,254,0.5)'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (canSend) {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 2px 12px rgba(93,107,254,0.4)'
-              }
-            }}
+            className={`
+              w-12 h-12 rounded-[var(--r-md)] shrink-0 flex items-center justify-center border-none
+              focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]
+              transition-all duration-150 ease-[var(--ease)]
+              enabled:cursor-pointer disabled:cursor-not-allowed
+              enabled:shadow-[0_2px_12px_rgba(93,107,254,0.4)] disabled:shadow-none
+              enabled:hover:translate-y-[-1px] enabled:hover:shadow-[0_4px_20px_rgba(93,107,254,0.5)]
+              enabled:text-white disabled:text-[var(--t3)]
+              enabled:bg-[linear-gradient(135deg,var(--accent)_0%,#7160fd_100%)] disabled:bg-[rgba(255,255,255,0.05)]
+            `}
           >
             {disabled ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
