@@ -1,5 +1,6 @@
 {
     "name": "Chat Agent – RAG",
+    "id": "inlX2WfrQ6whA1Ws",
     "nodes": [
         {
             "parameters": {
@@ -10,7 +11,10 @@
             },
             "type": "n8n-nodes-base.webhook",
             "typeVersion": 2,
-            "position": [240, 300],
+            "position": [
+                240,
+                300
+            ],
             "name": "Webhook"
         },
         {
@@ -19,7 +23,10 @@
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
-            "position": [460, 300],
+            "position": [
+                460,
+                300
+            ],
             "name": "Parse Input"
         },
         {
@@ -28,11 +35,16 @@
                 "sendBody": true,
                 "specifyBody": "json",
                 "jsonBody": "={{ JSON.stringify({ model: 'nomic-embed-text-v2-moe', prompt: $json.message }) }}",
-                "options": { "timeout": 30000 }
+                "options": {
+                    "timeout": 30000
+                }
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
-            "position": [680, 300],
+            "position": [
+                680,
+                300
+            ],
             "name": "Embed Query",
             "onError": "continueRegularOutput"
         },
@@ -41,22 +53,30 @@
                 "url": "http://host.docker.internal:6333/collections/rag_docs/points/search",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ JSON.stringify({ vector: $json.embedding || [], top: 5, with_payload: true, score_threshold: 0.5 }) }}",
-                "options": { "timeout": 15000 }
+                "jsonBody": "={{ JSON.stringify({ vector: $json.embedding || [], top: 15, with_payload: true, score_threshold: 0.2 }) }}",
+                "options": {
+                    "timeout": 15000
+                }
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
-            "position": [900, 300],
+            "position": [
+                900,
+                300
+            ],
             "name": "Search Qdrant",
             "onError": "continueRegularOutput"
         },
         {
             "parameters": {
-                "jsCode": "// Build context from Qdrant search results and prepare the prompt\nconst message   = $('Parse Input').first().json.message;\nconst searchResult = $input.first().json;\n\nconst hits = (searchResult.result || []).filter(h => h.payload && h.payload.text);\n\nlet context = '';\nconst sources = [];\n\nif (hits.length > 0) {\n  context = hits.map((h, i) => {\n    const fn  = h.payload.filename || 'unknown';\n    const txt = h.payload.text     || '';\n    sources.push({ file: fn, excerpt: txt.slice(0, 200), score: Math.round((h.score || 0) * 100) });\n    return `[Source ${i+1}: ${fn}]\\n${txt}`;\n  }).join('\\n\\n---\\n\\n');\n}\n\nconst systemPrompt = context\n  ? `You are a knowledgeable assistant for Riga City Council, helping citizens and staff understand municipal documents, budgets, regulations, and policies.\n\n## Instructions\n- Answer based ONLY on the provided document context below — do not invent or assume facts not present in the context\n- If the context is insufficient to fully answer the question, clearly state what information is missing or unavailable\n- Structure your answers with clear markdown formatting:\n  - Use **bold** for key terms, names, amounts, and dates\n  - Use bullet points or numbered lists for multiple items or steps\n  - Use headings (##) only for multi-section answers\n- When quoting specific figures, dates, or legal references from the documents, cite them accurately\n- Reference your sources naturally (e.g. \"According to [filename]...\" or \"As stated in [filename]...\")\n- Respond in the same language as the user's question: in Latvian (latviski) if asked in Latvian, in English if asked in English\n- Be precise and concise — avoid unnecessary filler phrases like \"Great question!\" or \"Certainly!\"\n- If the question is ambiguous, answer the most likely interpretation and note any assumptions\n\n## Document Context\n${context}`\n  : 'You are a knowledgeable assistant for Riga City Council. No documents have been indexed yet, so you can only draw on general knowledge about Riga and Latvian municipal administration. Clearly note when your answer may not reflect current or official data. Respond in the same language as the question (Latvian or English). Structure your answers clearly using markdown formatting.';\n\nreturn [{ json: { message, systemPrompt, sources } }];"
+                "jsCode": "// Build context from Qdrant search results and prepare the prompt\nconst message   = $('Parse Input').first().json.message;\nconst searchResult = $input.first().json;\n\nconsole.log('--- RAG DEBUG ---');\nconsole.log('Query:', message);\nconsole.log('Raw Search Hits:', (searchResult.result || []).length);\n\n// Relaxed filtering: accept anything with payload text\nconst hits = (searchResult.result || []).filter(h => h.payload && h.payload.text);\nconsole.log('Filtered Hits:', hits.length);\nif (hits.length > 0) {\n    console.log('Top Hit:', hits[0].payload.filename, hits[0].score);\n    console.log('Top Hit Text Snippet:', hits[0].payload.text.slice(0, 100));\n}\n\nlet context = '';\nconst sources = [];\n\nif (hits.length > 0) {\n  context = hits.map((h, i) => {\n    const fn  = h.payload.filename || 'unknown';\n    const txt = h.payload.text     || '';\n    const score = h.score || 0;\n    sources.push({ file: fn, excerpt: txt.slice(0, 200), score: Math.round(score * 100) });\n    return `[Source ${i+1}: ${fn} (Score: ${score.toFixed(2)})]\\n${txt}`;\n  }).join('\\n\\n---\\n\\n');\n}\n\nconst systemPrompt = context\n  ? `You are a knowledgeable assistant for Riga City Council, helping citizens and staff understand municipal documents, budgets, regulations, and policies.\\n\\n## Instructions\\n- Answer based ONLY on the provided document context below — do not invent or assume facts not present in the context\\n- If the context is insufficient to fully answer the question, clearly state what information is missing or unavailable\\n- Structure your answers with clear markdown formatting:\\n  - Use **bold** for key terms, names, amounts, and dates\\n  - Use bullet points or numbered lists for multiple items or steps\\n  - Use headings (##) only for multi-section answers\\n- When quoting specific figures, dates, or legal references from the documents, cite them accurately\\n- Reference your sources naturally (e.g. \"According to [filename]...\" or \"As stated in [filename]...\")\\n- Respond in the same language as the user's question: in Latvian (latviski) if asked in Latvian, in English if asked in English\\n- Be precise and concise — avoid unnecessary filler phrases like \"Great question!\" or \"Certainly!\"\\n- If the question is ambiguous, answer the most likely interpretation and note any assumptions\\n\\n## Document Context\\n${context}`\n  : `You are a knowledgeable assistant for Riga City Council. No relevant documents were found in the index for this query (Search returned 0 results).\\n\\nINSTRUCTIONS:\\n1. Inform the user that you couldn't find specific documents related to their query in the local knowledge base.\\n2. You may provide a general answer based on your broad training data, but clearly state that it's NOT from the official documents.\\n3. Suggest they rephrase or check the official Riga.lv website if applicable.\\n\\nUser Question: ${message}`;\n\nconsole.log('Generated Prompt Length:', systemPrompt.length);\nreturn [{ json: { message, systemPrompt, sources } }];"
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
-            "position": [1120, 300],
+            "position": [
+                1120,
+                300
+            ],
             "name": "Build RAG Prompt"
         },
         {
@@ -65,11 +85,16 @@
                 "sendBody": true,
                 "specifyBody": "json",
                 "jsonBody": "={{ JSON.stringify({ model: 'alibayram/erurollm-9b-instruct', messages: [ { role: 'system', content: $json.systemPrompt }, { role: 'user', content: $json.message } ], stream: false, options: { temperature: 0.3, top_p: 0.9, repeat_penalty: 1.1 } }) }}",
-                "options": { "timeout": 120000 }
+                "options": {
+                    "timeout": 120000
+                }
             },
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.2,
-            "position": [1340, 300],
+            "position": [
+                1340,
+                300
+            ],
             "name": "Ollama Chat"
         },
         {
@@ -78,7 +103,10 @@
             },
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
-            "position": [1560, 300],
+            "position": [
+                1560,
+                300
+            ],
             "name": "Format Response"
         },
         {
@@ -89,44 +117,89 @@
             },
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1.1,
-            "position": [1780, 300],
+            "position": [
+                1780,
+                300
+            ],
             "name": "Respond"
         }
     ],
     "connections": {
         "Webhook": {
             "main": [
-                [{ "node": "Parse Input", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Parse Input",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Parse Input": {
             "main": [
-                [{ "node": "Embed Query", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Embed Query",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Embed Query": {
             "main": [
-                [{ "node": "Search Qdrant", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Search Qdrant",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Search Qdrant": {
             "main": [
-                [{ "node": "Build RAG Prompt", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Build RAG Prompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Build RAG Prompt": {
             "main": [
-                [{ "node": "Ollama Chat", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Ollama Chat",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Ollama Chat": {
             "main": [
-                [{ "node": "Format Response", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Format Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         },
         "Format Response": {
             "main": [
-                [{ "node": "Respond", "type": "main", "index": 0 }]
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
             ]
         }
     },

@@ -16,7 +16,7 @@ export async function sendChat(message: string, sessionId: string) {
         answer: string;
         sources: Array<{ file: string; excerpt: string; score: number }>;
         executionId?: string;
-    }>('/webhook/chat', { message, sessionId });
+    }>('/webhook/rag-chat', { message, sessionId });
     return data;
 }
 

@@ -59,14 +59,14 @@ async function extractText(buffer, mimeType, filename) {
 
     // DOCX / Word (legacy .doc not supported without extra lib)
     if ((mimeType.includes('wordprocessingml') || mimeType.includes('msword') ||
-         ext === 'docx' || ext === 'doc') && mammoth) {
+      ext === 'docx' || ext === 'doc') && mammoth) {
       const result = await mammoth.extractRawText({ buffer });
       return result.value || '';
     }
 
     // XLSX / Excel (both modern .xlsx and legacy .xls)
     if ((mimeType.includes('spreadsheetml') || mimeType.includes('xlsx') ||
-         mimeType.includes('ms-excel') || ext === 'xlsx' || ext === 'xls') && XLSX) {
+      mimeType.includes('ms-excel') || ext === 'xlsx' || ext === 'xls') && XLSX) {
       const wb = XLSX.read(buffer, { type: 'buffer' });
       return wb.SheetNames.map(name => {
         const ws = wb.Sheets[name];
@@ -76,7 +76,7 @@ async function extractText(buffer, mimeType, filename) {
 
     // Plain text variants: TXT, CSV, Markdown, JSON, XML, HTML
     if (mimeType.startsWith('text/') ||
-        ['txt', 'csv', 'md', 'markdown', 'json', 'xml', 'html', 'htm'].includes(ext)) {
+      ['txt', 'csv', 'md', 'markdown', 'json', 'xml', 'html', 'htm'].includes(ext)) {
       return buffer.toString('utf-8');
     }
 
@@ -119,18 +119,18 @@ app.get('/health', async (_req, res) => {
   try {
     const r = await fetch(`${qdrantUrl}/collections`, { signal: AbortSignal.timeout(3000) });
     if (r.ok) qdrant = 'ok';
-  } catch (_) {}
+  } catch (_) { }
 
   try {
     const r = await fetch(`${ollamaUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
     if (r.ok) ollama = 'ok';
-  } catch (_) {}
+  } catch (_) { }
 
   try {
     const n8nUrl = process.env.N8N_URL || 'http://localhost:5678';
     const r = await fetch(`${n8nUrl}/healthz`, { signal: AbortSignal.timeout(3000) });
     if (r.ok) n8n = 'ok';
-  } catch (_) {}
+  } catch (_) { }
 
   res.json({ ok: true, db: DB_PATH, qdrant, ollama, n8n });
 });
@@ -343,6 +343,13 @@ app.delete('/docs/:id', async (req, res) => {
   db.prepare('DELETE FROM documents WHERE id = ?').run(docId);
 
   res.json({ ok: true, collection: doc.collection });
+});
+
+// ─── GET /docs/:id/text ───────────────────────────────────────────────────────
+app.get('/docs/:id/text', (req, res) => {
+  const row = db.prepare('SELECT text FROM doc_fts WHERE doc_id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Text not found or not indexed' });
+  res.json({ text: row.text });
 });
 
 // ─── POST /docs/search ────────────────────────────────────────────────────────

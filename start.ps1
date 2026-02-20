@@ -69,7 +69,8 @@ Write-Host "  Building image from .\doc-server..." -ForegroundColor Gray
 docker build -t rag-doc-server "$ROOT\doc-server" > "$ROOT\doc-server-build.log" 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  [ERROR] Docker build failed — see doc-server-build.log" -ForegroundColor Red
-} else {
+}
+else {
     # host.docker.internal resolves to the Windows host from inside Docker containers
     docker run -d `
         --name rag-doc-server `
@@ -84,7 +85,8 @@ if ($LASTEXITCODE -ne 0) {
     $docCheck = docker ps --filter "name=rag-doc-server" --format "{{.Names}}" 2>$null
     if ($docCheck -eq "rag-doc-server") {
         Write-Host "  [OK] rag-doc-server running on port 3001" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "  [ERROR] rag-doc-server failed — run: docker logs rag-doc-server" -ForegroundColor Red
     }
 }
