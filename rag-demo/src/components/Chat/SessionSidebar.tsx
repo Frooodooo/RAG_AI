@@ -74,6 +74,15 @@ const SessionItem = memo(function SessionItem({
     const [isRenaming, setIsRenaming] = useState(false)
     const [deletePhase, setDeletePhase] = useState<'idle' | 'confirm'>('idle')
     const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const cancelBtnRef = useRef<HTMLButtonElement>(null)
+
+    // Focus cancel button when entering confirm phase
+    useEffect(() => {
+        if (deletePhase === 'confirm') {
+            // slightly delay to ensure render cycle is complete
+            requestAnimationFrame(() => cancelBtnRef.current?.focus())
+        }
+    }, [deletePhase])
 
     // Clean up timer on unmount
     useEffect(() => {
@@ -109,6 +118,9 @@ const SessionItem = memo(function SessionItem({
             onClick={() => { if (!isRenaming) onSelect(session.id) }}
             onDoubleClick={(e) => { e.preventDefault(); setIsRenaming(true) }}
             onKeyDown={(e) => {
+                // Allow interactive children (buttons, inputs) to handle their own events
+                if ((e.target as HTMLElement).closest('button, input')) return
+
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     if (!isRenaming) onSelect(session.id)
@@ -177,6 +189,7 @@ const SessionItem = memo(function SessionItem({
                             <>
                                 {/* Cancel */}
                                 <button
+                                    ref={cancelBtnRef}
                                     onClick={cancelDelete}
                                     title="Cancel"
                                     aria-label="Cancel delete"
