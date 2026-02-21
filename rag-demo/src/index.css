@@ -221,7 +221,8 @@ body {
   font-family: var(--font);
 }
 
-.nav-btn:hover .tooltip {
+.nav-btn:hover .tooltip,
+.nav-btn:focus-visible .tooltip {
   opacity: 1;
 }
 

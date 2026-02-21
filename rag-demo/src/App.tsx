@@ -104,10 +104,10 @@ function App() {
               key={item.id}
               className={`nav-btn ${activeTab === item.id ? 'active' : ''}`}
               onClick={() => setActiveTab(item.id)}
-              title={t(item.labelKey as any) as string}
+              aria-label={t(item.labelKey as any) as string}
             >
               {item.icon}
-              <span className="tooltip">{t(item.labelKey as any) as string}</span>
+              <span className="tooltip" aria-hidden="true">{t(item.labelKey as any) as string}</span>
             </button>
           ))}
         </div>
