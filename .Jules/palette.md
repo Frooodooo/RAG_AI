@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - List Item Event Hijacking
+**Learning:** List items (role="listitem") with `onKeyDown` handlers for selection (Enter/Space) can unintentionally hijack keyboard events from interactive children like buttons or inputs, making them inaccessible.
+**Action:** Always check `e.target` or `e.target.closest('button, input')` in the parent's `onKeyDown` handler to allow events to propagate to interactive children, ensuring nested controls remain usable.
