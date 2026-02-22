@@ -74,6 +74,7 @@ const SessionItem = memo(function SessionItem({
     const [isRenaming, setIsRenaming] = useState(false)
     const [deletePhase, setDeletePhase] = useState<'idle' | 'confirm'>('idle')
     const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const itemRef = useRef<HTMLDivElement>(null)
 
     // Clean up timer on unmount
     useEffect(() => {
@@ -102,8 +103,14 @@ const SessionItem = memo(function SessionItem({
         setDeletePhase('idle')
     }
 
+    const restoreFocus = () => {
+        // Restore focus to the list item after renaming is finished
+        setTimeout(() => itemRef.current?.focus(), 0)
+    }
+
     return (
         <div
+            ref={itemRef}
             role="listitem"
             tabIndex={0}
             onClick={() => { if (!isRenaming) onSelect(session.id) }}
@@ -112,6 +119,10 @@ const SessionItem = memo(function SessionItem({
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     if (!isRenaming) onSelect(session.id)
+                }
+                if (e.key === 'F2') {
+                    e.preventDefault()
+                    setIsRenaming(true)
                 }
             }}
             className="group relative flex items-start gap-2.5 mx-1.5 mb-0.5 px-3 py-2.5 rounded-lg cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-primary)]"
@@ -142,15 +153,22 @@ const SessionItem = memo(function SessionItem({
                 {isRenaming ? (
                     <RenameInput
                         initialValue={session.title}
-                        onCommit={(val) => { onRename(session.id, val); setIsRenaming(false) }}
-                        onCancel={() => setIsRenaming(false)}
+                        onCommit={(val) => {
+                            onRename(session.id, val)
+                            setIsRenaming(false)
+                            restoreFocus()
+                        }}
+                        onCancel={() => {
+                            setIsRenaming(false)
+                            restoreFocus()
+                        }}
                     />
                 ) : (
                     <>
                         <div
                             className="text-sm font-medium truncate leading-tight"
                             style={{ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                            title={session.title}
+                            title={`${session.title} (Double-click or F2 to rename)`}
                         >
                             {session.title}
                         </div>
@@ -230,6 +248,7 @@ export default function SessionSidebar({
         return localStorage.getItem(COLLAPSE_KEY) === 'true'
     })
     const [search, setSearch] = useState('')
+    const searchInputRef = useRef<HTMLInputElement>(null)
 
     const toggleCollapse = useCallback(() => {
         setCollapsed((c) => {
@@ -328,9 +347,16 @@ export default function SessionSidebar({
                             <SearchIcon width="14" height="14" strokeWidth="2"
                                 style={{ color: 'var(--text-muted)', flexShrink: 0 }} aria-hidden="true" />
                             <input
+                                ref={searchInputRef}
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape') {
+                                        e.preventDefault()
+                                        setSearch('')
+                                    }
+                                }}
                                 placeholder="Search…"
                                 aria-label="Search conversations"
                                 className="flex-1 bg-transparent border-none outline-none text-sm"
@@ -338,7 +364,12 @@ export default function SessionSidebar({
                             />
                             {search && (
                                 <button
-                                    onClick={() => setSearch('')}
+                                    onClick={() => {
+                                        setSearch('')
+                                        searchInputRef.current?.focus()
+                                    }}
+                                    title="Clear search"
+                                    aria-label="Clear search"
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
                                     <XIcon width="10" height="10" strokeWidth="2.5" />
