@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - Resetting Component State via `key` Prop
+**Learning:** In chat interfaces, switching sessions (context) should reset the input field's state (clear draft, auto-focus) to prevent confusion. Local component state (`useState`) persists across re-renders if the component identity remains the same.
+**Action:** Use the `key={sessionId}` prop on stateful components like `<ChatInput />` to force a remount when the session changes. This automatically triggers `useEffect` (for autofocus) and resets internal state (clearing text) without complex imperative logic.
