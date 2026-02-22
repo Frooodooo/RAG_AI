@@ -95,7 +95,7 @@ export default function ChatPage({ onProcessingChange, onExecution }: ChatPagePr
         </div>
 
         {/* Input */}
-        <ChatInput onSend={handleSend} disabled={loading} />
+        <ChatInput key={activeSessionId} onSend={handleSend} disabled={loading} />
       </div>
     </div>
   )
