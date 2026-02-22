@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, memo } from 'react'
 import { useLocale } from '../../i18n'
 import { formatRelativeTime } from '../../utils/date'
 import type { ChatSession } from '../../hooks/useChatSessions'
-import { ChatBubbleIcon, XIcon, CheckIcon, TrashIcon, SidebarIcon, PlusIcon, SearchIcon } from '../Icons'
+import { ChatBubbleIcon, XIcon, CheckIcon, TrashIcon, SidebarIcon, PlusIcon, SearchIcon, EditIcon } from '../Icons'
 
 interface SessionSidebarProps {
     sessions: ChatSession[]
@@ -113,6 +113,10 @@ const SessionItem = memo(function SessionItem({
                     e.preventDefault()
                     if (!isRenaming) onSelect(session.id)
                 }
+                if (e.key === 'F2') {
+                    e.preventDefault()
+                    setIsRenaming(true)
+                }
             }}
             className="group relative flex items-start gap-2.5 mx-1.5 mb-0.5 px-3 py-2.5 rounded-lg cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-primary)]"
             style={{
@@ -197,17 +201,30 @@ const SessionItem = memo(function SessionItem({
                                 </button>
                             </>
                         ) : (
-                            <button
-                                onClick={handleDeleteClick}
-                                title="Delete conversation"
-                                aria-label="Delete conversation"
-                                className="w-7 h-7 flex items-center justify-center rounded transition-all"
-                                style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
-                                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-rose)')}
-                                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-                            >
-                                <TrashIcon width="13" height="13" strokeWidth="2.5" aria-hidden="true" />
-                            </button>
+                            <>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setIsRenaming(true) }}
+                                    title="Rename conversation"
+                                    aria-label="Rename conversation"
+                                    className="w-7 h-7 flex items-center justify-center rounded transition-all"
+                                    style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                                >
+                                    <EditIcon width="13" height="13" strokeWidth="2.5" aria-hidden="true" />
+                                </button>
+                                <button
+                                    onClick={handleDeleteClick}
+                                    title="Delete conversation"
+                                    aria-label="Delete conversation"
+                                    className="w-7 h-7 flex items-center justify-center rounded transition-all"
+                                    style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-rose)')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                                >
+                                    <TrashIcon width="13" height="13" strokeWidth="2.5" aria-hidden="true" />
+                                </button>
+                            </>
                         )}
                     </div>
                 </div>
@@ -339,6 +356,7 @@ export default function SessionSidebar({
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
+                                    aria-label="Clear search"
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
                                     <XIcon width="10" height="10" strokeWidth="2.5" />
