@@ -76,6 +76,17 @@
   --nav-w: 80px;
   --session-sidebar-w: 320px;
   --session-collapsed: 70px;
+
+  /* ── Semantic Aliases (Backwards Compatibility) ── */
+  --text-primary: var(--t1);
+  --text-secondary: var(--t2);
+  --text-muted: var(--t3);
+  --text-accent: var(--t-accent);
+  --accent-primary: var(--accent);
+  --accent-secondary: var(--accent-2);
+  --accent-rose: var(--red);
+  --border-subtle: var(--b1);
+  --font-sans: var(--font);
 }
 
 /* ═══════════════════ Reset ═══════════════════ */
