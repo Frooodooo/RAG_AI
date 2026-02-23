@@ -7,6 +7,12 @@ function SourcesPanel({ sources }: { sources: Source[] }) {
   const { t } = useLocale()
   const [expanded, setExpanded] = useState(false)
   const listId = useId()
+  const [prevSources, setPrevSources] = useState(sources)
+
+  if (sources !== prevSources) {
+    setPrevSources(sources)
+    setExpanded(false)
+  }
 
   if (!sources || sources.length === 0) return null
 
