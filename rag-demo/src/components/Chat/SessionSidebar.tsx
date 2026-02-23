@@ -338,10 +338,13 @@ export default function SessionSidebar({
                             />
                             {search && (
                                 <button
+                                    type="button"
                                     onClick={() => setSearch('')}
+                                    title={t('chat.clear_search') as string}
+                                    aria-label={t('chat.clear_search') as string}
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
-                                    <XIcon width="10" height="10" strokeWidth="2.5" />
+                                    <XIcon width="10" height="10" strokeWidth="2.5" aria-hidden="true" />
                                 </button>
                             )}
                         </div>
