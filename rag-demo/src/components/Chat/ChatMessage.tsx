@@ -98,6 +98,13 @@ function renderMarkdown(text: string): React.ReactNode {
 // ── Code Block ───────────────────────────────────────────────────────────────
 function CodeBlock({ lang, code }: { lang: string; code: string }) {
   const [copied, setCopied] = useState(false)
+  const [prevCode, setPrevCode] = useState(code)
+
+  if (code !== prevCode) {
+    setPrevCode(code)
+    setCopied(false)
+  }
+
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
@@ -121,12 +128,23 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
 function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user'
   const [copied, setCopied] = useState(false)
+  const [prevMsg, setPrevMsg] = useState(message)
+
+  if (message !== prevMsg) {
+    setPrevMsg(message)
+    setCopied(false)
+  }
 
   const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
+
+  // Pre-calculate markdown content (hook must be top-level)
+  const renderedContent = useMemo(() =>
+    isUser ? null : renderMarkdown(message.content),
+  [isUser, message.content])
 
   /* ── User message ── */
   if (isUser) {
@@ -171,7 +189,6 @@ function ChatMessage({ message }: { message: Message }) {
   }
 
   /* ── AI message ── */
-  const renderedContent = useMemo(() => renderMarkdown(message.content), [message.content])
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">
