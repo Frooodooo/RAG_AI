@@ -98,6 +98,14 @@ function renderMarkdown(text: string): React.ReactNode {
 // ── Code Block ───────────────────────────────────────────────────────────────
 function CodeBlock({ lang, code }: { lang: string; code: string }) {
   const [copied, setCopied] = useState(false)
+  const [prevCode, setPrevCode] = useState(code)
+
+  // Bolt: Reset copied state when content changes (due to component reuse)
+  if (code !== prevCode) {
+    setPrevCode(code)
+    setCopied(false)
+  }
+
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
@@ -121,12 +129,23 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
 function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user'
   const [copied, setCopied] = useState(false)
+  const [prevMessage, setPrevMessage] = useState(message)
+
+  // Bolt: Reset copied state when message changes (due to component reuse)
+  if (message !== prevMessage) {
+    setPrevMessage(message)
+    setCopied(false)
+  }
 
   const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
+
+  /* ── AI message (pre-calculated for useMemo rules) ── */
+  const contentForMarkdown = isUser ? '' : message.content
+  const renderedContent = useMemo(() => renderMarkdown(contentForMarkdown), [contentForMarkdown])
 
   /* ── User message ── */
   if (isUser) {
@@ -169,9 +188,6 @@ function ChatMessage({ message }: { message: Message }) {
       </div>
     )
   }
-
-  /* ── AI message ── */
-  const renderedContent = useMemo(() => renderMarkdown(message.content), [message.content])
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">

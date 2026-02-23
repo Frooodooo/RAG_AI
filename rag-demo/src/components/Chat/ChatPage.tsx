@@ -78,7 +78,9 @@ export default function ChatPage({ onProcessingChange, onExecution }: ChatPagePr
             ) : (
               <>
                 {messages.map((msg, idx) => (
-                  <div key={`${activeSessionId}-${idx}`} style={{ animation: 'fade-in-up 0.3s ease-out forwards' }}>
+                  // Bolt Optimization: Use idx as key to prevent full remounts on session switch.
+                  // This reuses DOM nodes and avoids re-triggering the fade-in animation for existing messages.
+                  <div key={idx} style={{ animation: 'fade-in-up 0.3s ease-out forwards' }}>
                     <ChatMessage message={msg} />
                     {msg.role === 'ai' && msg.sources && msg.sources.length > 0 && (
                       <SourcesPanel sources={msg.sources} />
