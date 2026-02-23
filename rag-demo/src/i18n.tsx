@@ -34,6 +34,9 @@ const translations = {
         'chat.history_saved': 'Vēsture saglabāta lokāli',
         'chat.hint': '· Enter lai nosūtītu · Shift+Enter jaunai rindai · / lai fokusētu',
 
+        // Sidebar
+        'sidebar.clear_search': 'Notīrīt meklēšanu',
+
         // Documents
         'docs.title': 'Dokumentu pārvaldība',
         'docs.description': 'Augšupielādējiet dokumentus, lai izveidotu zināšanu bāzi. Atbalstītie formāti: PDF, DOCX, XLSX',
@@ -83,6 +86,9 @@ const translations = {
         'chat.try_asking': 'Try asking',
         'chat.history_saved': 'History saved locally',
         'chat.hint': '· Enter to send · Shift+Enter for newline · / to focus',
+
+        // Sidebar
+        'sidebar.clear_search': 'Clear search',
 
         // Documents
         'docs.title': 'Document Management',
