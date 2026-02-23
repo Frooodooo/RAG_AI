@@ -6,6 +6,14 @@ interface Source { file: string; excerpt: string; score: number }
 function SourcesPanel({ sources }: { sources: Source[] }) {
   const { t } = useLocale()
   const [expanded, setExpanded] = useState(false)
+  const [prevSources, setPrevSources] = useState(sources)
+
+  // Bolt: Reset expanded state when sources change (due to component reuse)
+  if (sources !== prevSources) {
+    setPrevSources(sources)
+    setExpanded(false)
+  }
+
   const listId = useId()
 
   if (!sources || sources.length === 0) return null
