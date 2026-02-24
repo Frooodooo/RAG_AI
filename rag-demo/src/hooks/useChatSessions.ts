@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import {
     type Message,
@@ -42,6 +42,12 @@ export function useChatSessions() {
         localStorage.setItem(ACTIVE_KEY, id)
     }, [])
 
+    // Track activeSessionId in a ref to keep callbacks stable
+    const activeSessionIdRef = useRef(activeSessionId)
+    useEffect(() => {
+        activeSessionIdRef.current = activeSessionId
+    }, [activeSessionId])
+
     const activeSession = sessions.find((s) => s.id === activeSessionId) ?? sessions[0] ?? makeSession()
 
     /** Create a new empty session and make it active. Returns its id. */
@@ -73,13 +79,14 @@ export function useChatSessions() {
                     updated = [makeSession()]
                 }
                 saveSessions(updated)
-                if (id === activeSessionId) {
+                // Use ref to avoid dependency on activeSessionId
+                if (id === activeSessionIdRef.current) {
                     setActiveSessionId(updated[0].id)
                 }
                 return updated
             })
         },
-        [activeSessionId, setActiveSessionId]
+        [setActiveSessionId]
     )
 
     /** Rename a session */
@@ -100,8 +107,9 @@ export function useChatSessions() {
     const addMessage = useCallback(
         (message: Message) => {
             setSessions((prev) => {
+                const currentId = activeSessionIdRef.current
                 const updated = prev.map((s) => {
-                    if (s.id !== activeSessionId) return s
+                    if (s.id !== currentId) return s
                     const messages = [...s.messages, message]
                     // Auto-title from first user message (60 chars max)
                     const isFirstUserMsg = s.messages.length === 0 && message.role === 'user'
@@ -114,20 +122,21 @@ export function useChatSessions() {
                 return updated
             })
         },
-        [activeSessionId]
+        []
     )
 
     /** Clear all messages in the active session (keep session entry, reset title). */
     const clearSession = useCallback(() => {
         setSessions((prev) => {
+            const currentId = activeSessionIdRef.current
             const updated = prev.map((s) => {
-                if (s.id !== activeSessionId) return s
+                if (s.id !== currentId) return s
                 return { ...s, messages: [], title: 'New Chat', updatedAt: new Date().toISOString() }
             })
             saveSessions(updated)
             return updated
         })
-    }, [activeSessionId])
+    }, [])
 
     return {
         sessions,
