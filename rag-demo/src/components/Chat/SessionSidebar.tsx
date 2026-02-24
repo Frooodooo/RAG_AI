@@ -113,6 +113,10 @@ const SessionItem = memo(function SessionItem({
                     e.preventDefault()
                     if (!isRenaming) onSelect(session.id)
                 }
+                if (e.key === 'F2') {
+                    e.preventDefault()
+                    setIsRenaming(true)
+                }
             }}
             className="group relative flex items-start gap-2.5 mx-1.5 mb-0.5 px-3 py-2.5 rounded-lg cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-primary)]"
             style={{
@@ -230,6 +234,7 @@ export default function SessionSidebar({
         return localStorage.getItem(COLLAPSE_KEY) === 'true'
     })
     const [search, setSearch] = useState('')
+    const searchInputRef = useRef<HTMLInputElement>(null)
 
     const toggleCollapse = useCallback(() => {
         setCollapsed((c) => {
@@ -328,6 +333,7 @@ export default function SessionSidebar({
                             <SearchIcon width="14" height="14" strokeWidth="2"
                                 style={{ color: 'var(--text-muted)', flexShrink: 0 }} aria-hidden="true" />
                             <input
+                                ref={searchInputRef}
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -338,10 +344,14 @@ export default function SessionSidebar({
                             />
                             {search && (
                                 <button
-                                    onClick={() => setSearch('')}
+                                    onClick={() => {
+                                        setSearch('')
+                                        searchInputRef.current?.focus()
+                                    }}
+                                    aria-label="Clear search"
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
-                                    <XIcon width="10" height="10" strokeWidth="2.5" />
+                                    <XIcon width="10" height="10" strokeWidth="2.5" aria-hidden="true" />
                                 </button>
                             )}
                         </div>
