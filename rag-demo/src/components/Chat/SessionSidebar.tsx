@@ -74,6 +74,13 @@ const SessionItem = memo(function SessionItem({
     const [isRenaming, setIsRenaming] = useState(false)
     const [deletePhase, setDeletePhase] = useState<'idle' | 'confirm'>('idle')
     const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const cancelButtonRef = useRef<HTMLButtonElement>(null)
+
+    useEffect(() => {
+        if (deletePhase === 'confirm') {
+            requestAnimationFrame(() => cancelButtonRef.current?.focus())
+        }
+    }, [deletePhase])
 
     // Clean up timer on unmount
     useEffect(() => {
@@ -177,6 +184,7 @@ const SessionItem = memo(function SessionItem({
                             <>
                                 {/* Cancel */}
                                 <button
+                                    ref={cancelButtonRef}
                                     onClick={cancelDelete}
                                     title="Cancel"
                                     aria-label="Cancel delete"
@@ -339,6 +347,7 @@ export default function SessionSidebar({
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
+                                    aria-label={t('chat.search_clear') as string}
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
                                     <XIcon width="10" height="10" strokeWidth="2.5" />
