@@ -9,3 +9,11 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - Search Input Focus Management
+**Learning:** Custom "clear search" buttons that remove themselves from the DOM often trap focus or reset it to the body, confusing keyboard users.
+**Action:** Always use a `ref` to programmatically return focus to the input field immediately after the clear action is triggered.
+
+## 2024-05-25 - Keyboard Equivalents for Double-Click
+**Learning:** Relying solely on double-click for actions like "rename" excludes keyboard-only users.
+**Action:** Map standard keyboard shortcuts (like `F2` for rename) to the same state handlers as the mouse events in list items.
