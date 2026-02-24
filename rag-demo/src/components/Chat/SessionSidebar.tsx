@@ -74,6 +74,9 @@ const SessionItem = memo(function SessionItem({
     const [isRenaming, setIsRenaming] = useState(false)
     const [deletePhase, setDeletePhase] = useState<'idle' | 'confirm'>('idle')
     const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const confirmBtnRef = useRef<HTMLButtonElement>(null)
+    const deleteBtnRef = useRef<HTMLButtonElement>(null)
+    const prevPhase = useRef(deletePhase)
 
     // Clean up timer on unmount
     useEffect(() => {
@@ -81,6 +84,18 @@ const SessionItem = memo(function SessionItem({
             if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
         }
     }, [])
+
+    // Focus management for delete confirmation
+    useEffect(() => {
+        if (deletePhase === 'confirm') {
+            // Focus the confirm button when entering confirm mode
+            requestAnimationFrame(() => confirmBtnRef.current?.focus())
+        } else if (deletePhase === 'idle' && prevPhase.current === 'confirm') {
+            // Focus the delete button when cancelling confirmation
+            requestAnimationFrame(() => deleteBtnRef.current?.focus())
+        }
+        prevPhase.current = deletePhase
+    }, [deletePhase])
 
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -96,8 +111,8 @@ const SessionItem = memo(function SessionItem({
         }
     }
 
-    const cancelDelete = (e: React.MouseEvent) => {
-        e.stopPropagation()
+    const cancelDelete = (e?: React.SyntheticEvent) => {
+        e?.stopPropagation()
         if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
         setDeletePhase('idle')
     }
@@ -105,6 +120,7 @@ const SessionItem = memo(function SessionItem({
     return (
         <div
             role="listitem"
+            aria-selected={isActive}
             tabIndex={0}
             onClick={() => { if (!isRenaming) onSelect(session.id) }}
             onDoubleClick={(e) => { e.preventDefault(); setIsRenaming(true) }}
@@ -178,6 +194,7 @@ const SessionItem = memo(function SessionItem({
                                 {/* Cancel */}
                                 <button
                                     onClick={cancelDelete}
+                                    onKeyDown={(e) => { if (e.key === 'Escape') cancelDelete(e) }}
                                     title="Cancel"
                                     aria-label="Cancel delete"
                                     className="w-7 h-7 flex items-center justify-center rounded transition-all"
@@ -187,7 +204,9 @@ const SessionItem = memo(function SessionItem({
                                 </button>
                                 {/* Confirm delete */}
                                 <button
+                                    ref={confirmBtnRef}
                                     onClick={handleDeleteClick}
+                                    onKeyDown={(e) => { if (e.key === 'Escape') cancelDelete(e) }}
                                     title="Confirm delete"
                                     aria-label="Confirm delete"
                                     className="w-7 h-7 flex items-center justify-center rounded transition-all"
@@ -198,6 +217,7 @@ const SessionItem = memo(function SessionItem({
                             </>
                         ) : (
                             <button
+                                ref={deleteBtnRef}
                                 onClick={handleDeleteClick}
                                 title="Delete conversation"
                                 aria-label="Delete conversation"

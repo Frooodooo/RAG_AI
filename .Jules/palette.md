@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-05-22 - Focus Management in Dynamic Lists
+**Learning:** When interactive elements are conditionally rendered (e.g., swapping a delete button for confirmation buttons), keyboard focus is lost to the `body` if not explicitly managed.
+**Action:** Use `useEffect` with `ref` and `requestAnimationFrame` to programmatically move focus to the relevant new element (e.g., the confirm button) immediately after the state change.
