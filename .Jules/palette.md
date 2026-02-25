@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - Focus Management on Clear Actions
+**Learning:** When clearing input fields via a separate button (e.g., search clear), the button often disappears (if conditionally rendered) or focus is lost to the body, disrupting keyboard navigation.
+**Action:** Always use `useRef` to programmatically return focus to the input element immediately after the clear action is triggered, ensuring the user can continue typing without re-navigating.
