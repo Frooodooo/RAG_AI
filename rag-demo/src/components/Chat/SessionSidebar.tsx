@@ -230,6 +230,7 @@ export default function SessionSidebar({
         return localStorage.getItem(COLLAPSE_KEY) === 'true'
     })
     const [search, setSearch] = useState('')
+    const searchRef = useRef<HTMLInputElement>(null)
 
     const toggleCollapse = useCallback(() => {
         setCollapsed((c) => {
@@ -328,6 +329,7 @@ export default function SessionSidebar({
                             <SearchIcon width="14" height="14" strokeWidth="2"
                                 style={{ color: 'var(--text-muted)', flexShrink: 0 }} aria-hidden="true" />
                             <input
+                                ref={searchRef}
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -338,7 +340,12 @@ export default function SessionSidebar({
                             />
                             {search && (
                                 <button
-                                    onClick={() => setSearch('')}
+                                    type="button"
+                                    onClick={() => {
+                                        setSearch('')
+                                        searchRef.current?.focus()
+                                    }}
+                                    aria-label={t('chat.clear') as string}
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
                                     <XIcon width="10" height="10" strokeWidth="2.5" />
