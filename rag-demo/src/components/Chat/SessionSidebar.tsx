@@ -74,6 +74,9 @@ const SessionItem = memo(function SessionItem({
     const [isRenaming, setIsRenaming] = useState(false)
     const [deletePhase, setDeletePhase] = useState<'idle' | 'confirm'>('idle')
     const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const cancelRef = useRef<HTMLButtonElement>(null)
+    const deleteBtnRef = useRef<HTMLButtonElement>(null)
+    const prevPhase = useRef(deletePhase)
 
     // Clean up timer on unmount
     useEffect(() => {
@@ -81,6 +84,20 @@ const SessionItem = memo(function SessionItem({
             if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
         }
     }, [])
+
+    // Focus management for delete confirmation
+    useEffect(() => {
+        if (prevPhase.current === 'idle' && deletePhase === 'confirm') {
+            // Entered confirm phase -> focus Cancel button
+            requestAnimationFrame(() => cancelRef.current?.focus())
+        } else if (prevPhase.current === 'confirm' && deletePhase === 'idle') {
+            // Exited confirm phase (cancelled) -> restore focus to Delete button if focus was lost
+            if (document.activeElement === document.body) {
+                requestAnimationFrame(() => deleteBtnRef.current?.focus())
+            }
+        }
+        prevPhase.current = deletePhase
+    }, [deletePhase])
 
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -177,6 +194,7 @@ const SessionItem = memo(function SessionItem({
                             <>
                                 {/* Cancel */}
                                 <button
+                                    ref={cancelRef}
                                     onClick={cancelDelete}
                                     title="Cancel"
                                     aria-label="Cancel delete"
@@ -198,6 +216,7 @@ const SessionItem = memo(function SessionItem({
                             </>
                         ) : (
                             <button
+                                ref={deleteBtnRef}
                                 onClick={handleDeleteClick}
                                 title="Delete conversation"
                                 aria-label="Delete conversation"
@@ -339,6 +358,7 @@ export default function SessionSidebar({
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
+                                    aria-label="Clear search"
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
                                     <XIcon width="10" height="10" strokeWidth="2.5" />

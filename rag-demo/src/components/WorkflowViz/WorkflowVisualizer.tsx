@@ -21,11 +21,16 @@ const nodeTypes = { execution: ExecutionNode };
 
 type WorkflowType = 'chat' | 'upload';
 
+interface WorkflowDefinition {
+    nodes: Array<{ name: string; type: string; position: number[]; description?: string }>;
+    connections: Record<string, { main: Array<Array<{ node: string; type: string; index: number }>> }>;
+}
+
 // Build ReactFlow nodes + edges from a workflow JSON definition
-function buildGraph(wf: typeof chatWorkflow): { nodes: Node[]; edges: Edge[] } {
+function buildGraph(wf: WorkflowDefinition): { nodes: Node[]; edges: Edge[] } {
     if (!wf.nodes || !wf.connections) return { nodes: [], edges: [] };
 
-    const nodes: Node[] = (wf.nodes as Array<{ name: string; type: string; position: [number, number]; description?: string }>).map(n => ({
+    const nodes: Node[] = wf.nodes.map(n => ({
         id: n.name,
         position: { x: n.position[0], y: n.position[1] },
         type: 'execution',
@@ -74,7 +79,7 @@ export default function WorkflowVisualizer({
 }: WorkflowVisualizerProps) {
     const { t } = useLocale();
 
-    const wfData = workflowType === 'upload' ? uploadWorkflow : chatWorkflow;
+    const wfData = (workflowType === 'upload' ? uploadWorkflow : chatWorkflow) as unknown as WorkflowDefinition;
     const { nodes: initNodes, edges: initEdges } = useMemo(() => buildGraph(wfData), [wfData]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initNodes);
