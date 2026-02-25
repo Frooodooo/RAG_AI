@@ -74,6 +74,7 @@ const SessionItem = memo(function SessionItem({
     const [isRenaming, setIsRenaming] = useState(false)
     const [deletePhase, setDeletePhase] = useState<'idle' | 'confirm'>('idle')
     const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const itemRef = useRef<HTMLDivElement>(null)
 
     // Clean up timer on unmount
     useEffect(() => {
@@ -104,11 +105,16 @@ const SessionItem = memo(function SessionItem({
 
     return (
         <div
+            ref={itemRef}
             role="listitem"
+            aria-selected={isActive}
             tabIndex={0}
             onClick={() => { if (!isRenaming) onSelect(session.id) }}
             onDoubleClick={(e) => { e.preventDefault(); setIsRenaming(true) }}
             onKeyDown={(e) => {
+                // Ignore if event comes from a child interactive element
+                if ((e.target as HTMLElement).closest('button, input')) return
+
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     if (!isRenaming) onSelect(session.id)
@@ -142,8 +148,15 @@ const SessionItem = memo(function SessionItem({
                 {isRenaming ? (
                     <RenameInput
                         initialValue={session.title}
-                        onCommit={(val) => { onRename(session.id, val); setIsRenaming(false) }}
-                        onCancel={() => setIsRenaming(false)}
+                        onCommit={(val) => {
+                            onRename(session.id, val)
+                            setIsRenaming(false)
+                            setTimeout(() => itemRef.current?.focus(), 0)
+                        }}
+                        onCancel={() => {
+                            setIsRenaming(false)
+                            setTimeout(() => itemRef.current?.focus(), 0)
+                        }}
                     />
                 ) : (
                     <>
@@ -230,6 +243,7 @@ export default function SessionSidebar({
         return localStorage.getItem(COLLAPSE_KEY) === 'true'
     })
     const [search, setSearch] = useState('')
+    const searchInputRef = useRef<HTMLInputElement>(null)
 
     const toggleCollapse = useCallback(() => {
         setCollapsed((c) => {
@@ -328,6 +342,7 @@ export default function SessionSidebar({
                             <SearchIcon width="14" height="14" strokeWidth="2"
                                 style={{ color: 'var(--text-muted)', flexShrink: 0 }} aria-hidden="true" />
                             <input
+                                ref={searchInputRef}
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -338,7 +353,12 @@ export default function SessionSidebar({
                             />
                             {search && (
                                 <button
-                                    onClick={() => setSearch('')}
+                                    onClick={() => {
+                                        setSearch('')
+                                        searchInputRef.current?.focus()
+                                    }}
+                                    title="Clear search"
+                                    aria-label="Clear search"
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
                                     <XIcon width="10" height="10" strokeWidth="2.5" />
