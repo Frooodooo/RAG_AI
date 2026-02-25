@@ -7,6 +7,8 @@ import {
     saveSessions,
 } from './chatSessionStore'
 
+export type { Message, ChatSession }
+
 const ACTIVE_KEY = 'rag-active-session'
 
 function makeSession(): ChatSession {
@@ -31,10 +33,9 @@ export function useChatSessions() {
     })
 
     const [activeSessionId, setActiveSessionIdState] = useState<string>(() => {
-        const loaded = loadSessions()
         const saved = localStorage.getItem(ACTIVE_KEY)
-        if (saved && loaded.find((s) => s.id === saved)) return saved
-        return loaded[0]?.id ?? ''
+        if (saved && sessions.find((s) => s.id === saved)) return saved
+        return sessions[0]?.id ?? ''
     })
 
     const setActiveSessionId = useCallback((id: string) => {
