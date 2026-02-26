@@ -74,7 +74,8 @@ export default function WorkflowVisualizer({
 }: WorkflowVisualizerProps) {
     const { t } = useLocale();
 
-    const wfData = workflowType === 'upload' ? uploadWorkflow : chatWorkflow;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wfData = (workflowType === 'upload' ? uploadWorkflow : chatWorkflow) as any;
     const { nodes: initNodes, edges: initEdges } = useMemo(() => buildGraph(wfData), [wfData]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initNodes);
