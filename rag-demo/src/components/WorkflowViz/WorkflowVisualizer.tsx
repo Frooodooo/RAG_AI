@@ -22,7 +22,8 @@ const nodeTypes = { execution: ExecutionNode };
 type WorkflowType = 'chat' | 'upload';
 
 // Build ReactFlow nodes + edges from a workflow JSON definition
-function buildGraph(wf: typeof chatWorkflow): { nodes: Node[]; edges: Edge[] } {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildGraph(wf: any): { nodes: Node[]; edges: Edge[] } {
     if (!wf.nodes || !wf.connections) return { nodes: [], edges: [] };
 
     const nodes: Node[] = (wf.nodes as Array<{ name: string; type: string; position: [number, number]; description?: string }>).map(n => ({
