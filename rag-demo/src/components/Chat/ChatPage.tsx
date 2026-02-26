@@ -107,11 +107,19 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
   onClear: () => void; onRename: (t: string) => void; t: (k: any) => any
 }) {
   const [isRenaming, setIsRenaming] = useState(false)
+  const [confirmClear, setConfirmClear] = useState(false)
   const [val, setVal] = useState(title)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setVal(title) }, [title])
   useEffect(() => { if (isRenaming) { inputRef.current?.focus(); inputRef.current?.select() } }, [isRenaming])
+
+  useEffect(() => {
+    if (confirmClear) {
+      const timer = setTimeout(() => setConfirmClear(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [confirmClear])
 
   const commit = () => {
     const trimmed = val.trim()
@@ -169,13 +177,28 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
 
       {messageCount > 0 && (
         <button
-          onClick={onClear}
+          onClick={() => {
+            if (confirmClear) {
+              onClear()
+              setConfirmClear(false)
+            } else {
+              setConfirmClear(true)
+            }
+          }}
           className="btn btn-ghost"
-          style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
-          title="Clear conversation"
+          style={{
+            fontSize: '14px',
+            padding: '6px 14px',
+            marginLeft: '12px',
+            flexShrink: 0,
+            color: confirmClear ? 'var(--red)' : undefined,
+            borderColor: confirmClear ? 'var(--red)' : undefined,
+            transition: 'all 0.2s ease'
+          }}
+          title={confirmClear ? (t('chat.clear_confirm') as string) : (t('chat.clear') as string)}
         >
           <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
-          {t('chat.clear') as string}
+          {confirmClear ? (t('chat.clear_confirm') as string) : (t('chat.clear') as string)}
         </button>
       )}
     </div>
