@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-06-03 - Shortcut Discovery with Tooltips
+**Learning:** Keyboard shortcuts that override browser defaults (like Ctrl+B for bookmarks) can be confusing if not hinted. Adding the shortcut to the tooltip (e.g., "Collapse (Ctrl+B)") makes the feature discoverable and reassures users about the intended behavior.
+**Action:** Always pair custom keyboard shortcuts with visible tooltips and `aria-keyshortcuts` attributes to improve discoverability and accessibility.
