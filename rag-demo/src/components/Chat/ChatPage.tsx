@@ -6,7 +6,7 @@ import ChatInput from './ChatInput'
 import ChatMessage from './ChatMessage'
 import SourcesPanel from './SourcesPanel'
 import SessionSidebar from './SessionSidebar'
-import { ChatBubbleIcon, EditIcon, TrashIcon } from '../Icons'
+import { ChatBubbleIcon, EditIcon, TrashIcon, CheckIcon } from '../Icons'
 import { ThinkingIndicator } from './ThinkingIndicator'
 
 interface ChatPageProps {
@@ -106,17 +106,36 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
   title: string; messageCount: number
   onClear: () => void; onRename: (t: string) => void; t: (k: any) => any
 }) {
+  const { locale } = useLocale()
   const [isRenaming, setIsRenaming] = useState(false)
   const [val, setVal] = useState(title)
+  const [confirming, setConfirming] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setVal(title) }, [title])
   useEffect(() => { if (isRenaming) { inputRef.current?.focus(); inputRef.current?.select() } }, [isRenaming])
 
+  // Auto-reset confirmation state
+  useEffect(() => {
+    if (confirming) {
+      const timer = setTimeout(() => setConfirming(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [confirming])
+
   const commit = () => {
     const trimmed = val.trim()
     if (trimmed && trimmed !== title) onRename(trimmed)
     setIsRenaming(false)
+  }
+
+  const handleClear = () => {
+    if (confirming) {
+      onClear()
+      setConfirming(false)
+    } else {
+      setConfirming(true)
+    }
   }
 
   return (
@@ -169,13 +188,27 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
 
       {messageCount > 0 && (
         <button
-          onClick={onClear}
-          className="btn btn-ghost"
-          style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
-          title="Clear conversation"
+          type="button"
+          onClick={handleClear}
+          className={`btn ${confirming ? '' : 'btn-ghost'}`}
+          style={{
+            fontSize: '14px',
+            padding: '6px 14px',
+            marginLeft: '12px',
+            flexShrink: 0,
+            background: confirming ? 'var(--red-dim)' : undefined,
+            color: confirming ? 'var(--red)' : undefined,
+            border: confirming ? '1px solid var(--red)' : undefined,
+            transition: 'all 0.2s ease',
+          }}
+          title={confirming ? (locale === 'lv' ? 'Apstiprināt?' : 'Confirm clear?') : 'Clear conversation'}
         >
-          <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
-          {t('chat.clear') as string}
+          {confirming ? (
+            <CheckIcon width="14" height="14" stroke="currentColor" strokeWidth="2.5" />
+          ) : (
+            <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
+          )}
+          {t('chat.clear') as string}{confirming ? '?' : ''}
         </button>
       )}
     </div>
