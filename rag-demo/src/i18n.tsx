@@ -33,6 +33,8 @@ const translations = {
         'chat.try_asking': 'Jautājiet',
         'chat.history_saved': 'Vēsture saglabāta lokāli',
         'chat.hint': '· Enter lai nosūtītu · Shift+Enter jaunai rindai · / lai fokusētu',
+        'chat.sidebar_expand': 'Izvērst sānjoslu (Ctrl+B)',
+        'chat.sidebar_collapse': 'Sakļaut sānjoslu (Ctrl+B)',
 
         // Documents
         'docs.title': 'Dokumentu pārvaldība',
@@ -83,6 +85,8 @@ const translations = {
         'chat.try_asking': 'Try asking',
         'chat.history_saved': 'History saved locally',
         'chat.hint': '· Enter to send · Shift+Enter for newline · / to focus',
+        'chat.sidebar_expand': 'Expand sidebar (Ctrl+B)',
+        'chat.sidebar_collapse': 'Collapse sidebar (Ctrl+B)',
 
         // Documents
         'docs.title': 'Document Management',

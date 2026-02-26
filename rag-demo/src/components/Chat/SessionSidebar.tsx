@@ -257,6 +257,17 @@ export default function SessionSidebar({
         ? sessions.filter((s) => s.title.toLowerCase().includes(search.toLowerCase()))
         : sessions
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+                e.preventDefault()
+                toggleCollapse()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [toggleCollapse])
+
     return (
         <aside className={`session-sidebar ${collapsed ? 'collapsed' : ''}`}>
             {/* ── Toggle + New Chat Row ── */}
@@ -267,8 +278,9 @@ export default function SessionSidebar({
                 {/* Collapse toggle */}
                 <button
                     onClick={toggleCollapse}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    title={collapsed ? t('chat.sidebar_expand') as string : t('chat.sidebar_collapse') as string}
+                    aria-label={collapsed ? t('chat.sidebar_expand') as string : t('chat.sidebar_collapse') as string}
+                    aria-keyshortcuts="Control+b"
                     className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0"
                     style={{
                         background: 'transparent',
