@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from 'react'
+import { useState, useRef, useEffect, useCallback, memo, useMemo } from 'react'
 import { useLocale } from '../../i18n'
 import { formatRelativeTime } from '../../utils/date'
 import type { ChatSession } from '../../hooks/useChatSessions'
@@ -230,7 +230,7 @@ const SessionItem = memo(function SessionItem({
 })
 
 // ── Main Sidebar ──────────────────────────────────────────────────────────────
-export default function SessionSidebar({
+const SessionSidebar = memo(function SessionSidebar({
     sessions,
     activeSessionId,
     onNew,
@@ -253,9 +253,9 @@ export default function SessionSidebar({
         })
     }, [])
 
-    const filtered = search.trim()
+    const filtered = useMemo(() => search.trim()
         ? sessions.filter((s) => s.title.toLowerCase().includes(search.toLowerCase()))
-        : sessions
+        : sessions, [sessions, search])
 
     return (
         <aside className={`session-sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -399,4 +399,6 @@ export default function SessionSidebar({
             </div>
         </aside>
     )
-}
+})
+
+export default SessionSidebar
