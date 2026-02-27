@@ -1,68 +1,58 @@
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import sync_playwright
 
-def run():
+def verify_sidebar():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context()
-
-        # Set locale to English
-        context.add_init_script("localStorage.setItem('rag-locale', 'en')")
-
         page = context.new_page()
 
-        # 1. Navigate to the app
-        page.goto("http://localhost:3000")
+        try:
+            # Navigate to the app (assuming it's running on port 3000)
+            page.goto("http://localhost:3000")
 
-        # Wait for sidebar to load
-        sidebar = page.locator("aside.session-sidebar")
-        expect(sidebar).to_be_visible()
+            # Wait for sidebar to load
+            sidebar = page.locator(".session-sidebar")
+            sidebar.wait_for()
 
-        # Wait for initial load (sometimes takes a moment)
-        page.wait_for_timeout(1000)
+            # Check initial state (should not be collapsed)
+            classes = sidebar.get_attribute("class")
+            print(f"Initial classes: {classes}")
+            if "collapsed" in classes:
+                raise Exception("Sidebar started collapsed, expected expanded.")
 
-        # 2. Check Search Input
-        # Assuming we have enough sessions to show search, but we might not.
-        # If no sessions, search input is hidden: "sessions.length > 3"
+            # Trigger Ctrl+B
+            print("Pressing Ctrl+B...")
+            page.keyboard.press("Control+b")
 
-        # We need to create some sessions first.
-        # Click "New Chat" button multiple times.
-        # Use exact=True to avoid partial matches if needed, but scoping to sidebar is safer.
-        new_chat_btn = sidebar.get_by_role("button", name="New Chat")
+            # Wait for collapsed class
+            # We can use expect-like wait logic or just wait for selector
+            page.wait_for_selector(".session-sidebar.collapsed", timeout=2000)
 
-        # Create 5 sessions to trigger search bar
-        for _ in range(5):
-            new_chat_btn.click()
-            page.wait_for_timeout(300) # small delay
+            print("Sidebar successfully collapsed!")
+            page.screenshot(path="verification_collapsed.png")
 
-        # Now search input should be visible
-        # It's inside the sidebar
-        search_input = sidebar.get_by_placeholder("Search…")
-        expect(search_input).to_be_visible()
+            # Trigger Ctrl+B again to expand
+            print("Pressing Ctrl+B again...")
+            page.keyboard.press("Control+b")
 
-        # 3. Type in search
-        search_input.fill("Session")
+            # Wait for collapsed class to disappear
+            # We wait until .session-sidebar.collapsed is NOT present
+            # A simple way is to wait for the generic selector and check classes again
+            page.wait_for_timeout(500) # simple wait for transition start
 
-        # 4. Clear button should appear
-        # I added aria-label="Clear search"
-        clear_btn = sidebar.get_by_role("button", name="Clear search")
-        expect(clear_btn).to_be_visible()
+            classes_after = sidebar.get_attribute("class")
+            if "collapsed" in classes_after:
+                 # It might take a moment to remove class in React state
+                 page.wait_for_function("!document.querySelector('.session-sidebar').classList.contains('collapsed')")
 
-        # 5. Click clear button
-        clear_btn.click()
+            print("Sidebar successfully expanded!")
+            page.screenshot(path="verification_expanded.png")
 
-        # 6. Verify input is cleared
-        expect(search_input).to_have_value("")
-
-        # 7. Verify focus is back on input
-        # Playwright's expect(locator).to_be_focused() checks if element is focused
-        expect(search_input).to_be_focused()
-
-        print("Search clear and focus restoration verified!")
-
-        # Take screenshot
-        page.screenshot(path="rag-demo/verification_sidebar.png")
-
-        browser.close()
+        except Exception as e:
+            print(f"Verification failed: {e}")
+            raise
+        finally:
+            browser.close()
 
 if __name__ == "__main__":
-    run()
+    verify_sidebar()
