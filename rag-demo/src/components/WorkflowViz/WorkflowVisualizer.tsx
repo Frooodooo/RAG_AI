@@ -22,10 +22,12 @@ const nodeTypes = { execution: ExecutionNode };
 type WorkflowType = 'chat' | 'upload';
 
 // Build ReactFlow nodes + edges from a workflow JSON definition
-function buildGraph(wf: typeof chatWorkflow): { nodes: Node[]; edges: Edge[] } {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildGraph(wf: any): { nodes: Node[]; edges: Edge[] } {
     if (!wf.nodes || !wf.connections) return { nodes: [], edges: [] };
 
-    const nodes: Node[] = (wf.nodes as Array<{ name: string; type: string; position: [number, number]; description?: string }>).map(n => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nodes: Node[] = (wf.nodes as Array<{ name: string; type: string; position: [number, number]; description?: string }>).map((n: any) => ({
         id: n.name,
         position: { x: n.position[0], y: n.position[1] },
         type: 'execution',
@@ -38,11 +40,12 @@ function buildGraph(wf: typeof chatWorkflow): { nodes: Node[]; edges: Edge[] } {
     } satisfies ExecutionNodeType));
 
     const edges: Edge[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const connections = wf.connections as Record<string, { main: Array<Array<{ node: string; type: string; index: number }>> }>;
 
     Object.entries(connections).forEach(([src, outputs]) => {
-        outputs.main.forEach(group => {
-            group.forEach(conn => {
+        outputs.main.forEach((group) => {
+            group.forEach((conn) => {
                 edges.push({
                     id: `${src}->${conn.node}`,
                     source: src,

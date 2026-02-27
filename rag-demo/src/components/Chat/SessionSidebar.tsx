@@ -119,6 +119,10 @@ const SessionItem = memo(function SessionItem({
                     e.preventDefault()
                     if (!isRenaming) onSelect(session.id)
                 }
+                if (e.key === 'F2') {
+                    e.preventDefault()
+                    setIsRenaming(true)
+                }
             }}
             className="group relative flex items-start gap-2.5 mx-1.5 mb-0.5 px-3 py-2.5 rounded-lg cursor-pointer select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent-primary)]"
             style={{
@@ -253,6 +257,17 @@ export default function SessionSidebar({
         })
     }, [])
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+                e.preventDefault()
+                toggleCollapse()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [toggleCollapse])
+
     const filtered = search.trim()
         ? sessions.filter((s) => s.title.toLowerCase().includes(search.toLowerCase()))
         : sessions
@@ -267,8 +282,9 @@ export default function SessionSidebar({
                 {/* Collapse toggle */}
                 <button
                     onClick={toggleCollapse}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    title={collapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
                     aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    aria-keyshortcuts="Control+b"
                     className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0"
                     style={{
                         background: 'transparent',
