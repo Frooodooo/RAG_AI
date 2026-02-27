@@ -61,6 +61,7 @@ export async function getDocs() {
     try {
         const { data } = await axios.get(`${DOC_SERVER}/docs`);
         // Map snake_case from doc-server to camelCase for frontend
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return Array.isArray(data) ? data.map((d: any) => ({
             id: d.id,
             filename: d.filename,

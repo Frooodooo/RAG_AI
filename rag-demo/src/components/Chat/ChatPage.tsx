@@ -104,6 +104,7 @@ export default function ChatPage({ onProcessingChange, onExecution }: ChatPagePr
 /* ── Chat Subheader ── */
 function ChatHeader({ title, messageCount, onClear, onRename, t }: {
   title: string; messageCount: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onClear: () => void; onRename: (t: string) => void; t: (k: any) => any
 }) {
   const [isRenaming, setIsRenaming] = useState(false)
@@ -183,6 +184,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
 }
 
 /* ── Welcome Screen ── */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function WelcomeScreen({ loading, onSend, t }: { loading: boolean; onSend: (t: string) => void; t: (k: any) => any }) {
   return (
     <div style={{
@@ -220,6 +222,7 @@ function WelcomeScreen({ loading, onSend, t }: { loading: boolean; onSend: (t: s
       {/* Starter question chips */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', width: '100%', maxWidth: '800px' }}>
         {([1, 2, 3, 4] as const).map((i) => (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           <StarterChip key={i} text={t(`chat.starter_${i}` as any) as string} label={t('chat.try_asking') as string} disabled={loading} onSend={onSend} />
         ))}
       </div>

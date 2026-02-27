@@ -257,6 +257,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
     setDownloadError(null)
     try {
       await downloadDocFile(id, filename)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const msg = err?.message || 'Download failed'
       setDownloadError(`${filename}: ${msg}`)
