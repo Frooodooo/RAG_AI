@@ -22,9 +22,10 @@ const nodeTypes = { execution: ExecutionNode };
 type WorkflowType = 'chat' | 'upload';
 
 // Build ReactFlow nodes + edges from a workflow JSON definition
-function buildGraph(wf: typeof chatWorkflow): { nodes: Node[]; edges: Edge[] } {
+function buildGraph(wf: typeof chatWorkflow | typeof uploadWorkflow): { nodes: Node[]; edges: Edge[] } {
     if (!wf.nodes || !wf.connections) return { nodes: [], edges: [] };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nodes: Node[] = (wf.nodes as Array<{ name: string; type: string; position: [number, number]; description?: string }>).map(n => ({
         id: n.name,
         position: { x: n.position[0], y: n.position[1] },
@@ -38,6 +39,7 @@ function buildGraph(wf: typeof chatWorkflow): { nodes: Node[]; edges: Edge[] } {
     } satisfies ExecutionNodeType));
 
     const edges: Edge[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const connections = wf.connections as Record<string, { main: Array<Array<{ node: string; type: string; index: number }>> }>;
 
     Object.entries(connections).forEach(([src, outputs]) => {
@@ -115,6 +117,7 @@ export default function WorkflowVisualizer({
         );
     }, [execState, executionId, isActive, setNodes]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wfLabel = workflowType === 'upload'
         ? (uploadWorkflow as any).name
         : (chatWorkflow as any).name;
@@ -170,6 +173,7 @@ export default function WorkflowVisualizer({
                     <Controls />
                     <MiniMap
                         nodeColor={(n) => {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             const status = (n.data as any)?.status as NodeExecStatus;
                             if (status === 'done')    return '#34d399';
                             if (status === 'running') return '#5d6bfe';

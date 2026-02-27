@@ -34,6 +34,7 @@ export async function uploadFileAPI(file: File) {
         id: string;
         filename: string;
         message?: string;
+        executionId?: string; // Optional: added to satisfy frontend types
     }>(`${DOC_SERVER}/upload`, {
         filename: file.name,
         fileBase64: base64,
