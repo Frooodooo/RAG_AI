@@ -7,6 +7,9 @@ import {
     saveSessions,
 } from './chatSessionStore'
 
+// Re-export types so consumers don't have to import from store directly
+export type { Message, ChatSession }
+
 const ACTIVE_KEY = 'rag-active-session'
 
 function makeSession(): ChatSession {
