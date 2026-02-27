@@ -34,7 +34,10 @@ export default function UploadZone({ onUploadComplete, onExecution }: UploadZone
       setProgress({ current: i + 1, total: acceptedFiles.length })
       try {
         const result = await uploadDocument(acceptedFiles[i])
-        if (result.executionId) onExecution?.(result.executionId)
+        if (result && typeof result === 'object' && 'executionId' in result) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onExecution?.((result as any).executionId)
+        }
         successCount++
       } catch (err: unknown) {
         errorCount++

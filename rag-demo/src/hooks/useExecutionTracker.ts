@@ -30,8 +30,7 @@ export function useExecutionTracker(executionId: string | null | undefined): Exe
 
     useEffect(() => {
         if (!executionId) {
-            setState(EMPTY);
-            return;
+            return; // State initializes to EMPTY, no need to set it here
         }
 
         let cancelled = false;

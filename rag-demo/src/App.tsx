@@ -104,9 +104,11 @@ function App() {
               key={item.id}
               className={`nav-btn ${activeTab === item.id ? 'active' : ''}`}
               onClick={() => setActiveTab(item.id)}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               title={t(item.labelKey as any) as string}
             >
               {item.icon}
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               <span className="tooltip">{t(item.labelKey as any) as string}</span>
             </button>
           ))}

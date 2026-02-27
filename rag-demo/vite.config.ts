@@ -28,12 +28,12 @@ export default defineConfig(({ mode }) => {
         '/webhook/upload': {
           target: 'http://localhost:3001',
           changeOrigin: true,
-          rewrite: (_p) => '/upload',
+          rewrite: () => '/upload',
         },
         '/webhook/health': {
           target: 'http://localhost:3001',
           changeOrigin: true,
-          rewrite: (_p) => '/health',
+          rewrite: () => '/health',
         },
         // ── Generic n8n webhook proxy (chat, etc.) ──
         '/webhook': {
