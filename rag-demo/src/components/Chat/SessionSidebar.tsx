@@ -253,9 +253,28 @@ export default function SessionSidebar({
         })
     }, [])
 
+    // Add keyboard shortcut for toggling sidebar
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check for Ctrl+B (or Cmd+B on Mac)
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                e.preventDefault()
+                toggleCollapse()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [toggleCollapse])
+
     const filtered = search.trim()
         ? sessions.filter((s) => s.title.toLowerCase().includes(search.toLowerCase()))
         : sessions
+
+    // Determine shortcut label based on OS
+    const shortcutLabel = navigator.platform.toLowerCase().includes('mac') ? 'Cmd+B' : 'Ctrl+B'
+    const toggleTitle = collapsed
+        ? `Expand sidebar (${shortcutLabel})`
+        : `Collapse sidebar (${shortcutLabel})`
 
     return (
         <aside className={`session-sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -267,8 +286,9 @@ export default function SessionSidebar({
                 {/* Collapse toggle */}
                 <button
                     onClick={toggleCollapse}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    title={toggleTitle}
+                    aria-label={toggleTitle}
+                    aria-keyshortcuts="Control+b"
                     className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0"
                     style={{
                         background: 'transparent',
