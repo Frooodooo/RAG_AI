@@ -26,11 +26,18 @@ const POLL_INTERVAL_MS = 1500;
  */
 export function useExecutionTracker(executionId: string | null | undefined): ExecutionTrackState {
     const [state, setState] = useState<ExecutionTrackState>(EMPTY);
+    const [prevExecutionId, setPrevExecutionId] = useState(executionId);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    if (executionId !== prevExecutionId) {
+        setPrevExecutionId(executionId);
+        if (!executionId) {
+            setState(EMPTY);
+        }
+    }
 
     useEffect(() => {
         if (!executionId) {
-            setState(EMPTY);
             return;
         }
 
