@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import {
-    type Message,
-    type ChatSession,
     loadSessions,
     saveSessions,
 } from './chatSessionStore'
+import type { Message, ChatSession } from './chatSessionStore'
+
+export type { Message, ChatSession }
 
 const ACTIVE_KEY = 'rag-active-session'
 
@@ -73,13 +74,18 @@ export function useChatSessions() {
                     updated = [makeSession()]
                 }
                 saveSessions(updated)
-                if (id === activeSessionId) {
-                    setActiveSessionId(updated[0].id)
-                }
+                // Use functional update for activeSessionId to remove dependency
+                setActiveSessionIdState((currentActiveId) => {
+                    if (id === currentActiveId) {
+                        localStorage.setItem(ACTIVE_KEY, updated[0].id)
+                        return updated[0].id
+                    }
+                    return currentActiveId
+                })
                 return updated
             })
         },
-        [activeSessionId, setActiveSessionId]
+        []
     )
 
     /** Rename a session */
