@@ -25,7 +25,7 @@ export async function sendChat(message: string, sessionId: string) {
  *  doc-server registers the file, extracts text, and runs embeddings in background.
  *  Returns immediately with {id, processing: true}.
  */
-export async function uploadFileAPI(file: File) {
+export async function uploadFileAPI(file: File): Promise<{ success?: boolean; processing?: boolean; duplicate?: boolean; id: string; filename: string; message?: string; executionId?: string }> {
     const base64 = await fileToBase64(file);
     const { data } = await api.post<{
         success?: boolean;
