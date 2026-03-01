@@ -73,13 +73,19 @@ export function useChatSessions() {
                     updated = [makeSession()]
                 }
                 saveSessions(updated)
-                if (id === activeSessionId) {
-                    setActiveSessionId(updated[0].id)
-                }
+                // Use functional state update to eliminate dependency on activeSessionId
+                setActiveSessionIdState((prevId) => {
+                    if (id === prevId) {
+                        const newId = updated[0].id
+                        localStorage.setItem(ACTIVE_KEY, newId)
+                        return newId
+                    }
+                    return prevId
+                })
                 return updated
             })
         },
-        [activeSessionId, setActiveSessionId]
+        []
     )
 
     /** Rename a session */
