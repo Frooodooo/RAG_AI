@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - React Hooks Rule Violations and Pre-existing Errors
+**Learning:** The project has pre-existing ESLint errors, including `react-hooks/rules-of-hooks` in components like `ChatMessage.tsx`. Specifically, `useMemo` was called after conditional returns.
+**Action:** When making any changes, ensure to fix the React Hook rules violation by unconditionally calling hooks like `useMemo` at the top level, even if the component returns early. Also, it's expected that `pnpm lint` might have other pre-existing errors (`@typescript-eslint/no-explicit-any`).
