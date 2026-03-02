@@ -108,15 +108,34 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
 }) {
   const [isRenaming, setIsRenaming] = useState(false)
   const [val, setVal] = useState(title)
+  const [clearPhase, setClearPhase] = useState<'idle' | 'confirm'>('idle')
   const inputRef = useRef<HTMLInputElement>(null)
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { setVal(title) }, [title])
   useEffect(() => { if (isRenaming) { inputRef.current?.focus(); inputRef.current?.select() } }, [isRenaming])
+
+  useEffect(() => {
+    return () => {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current)
+    }
+  }, [])
 
   const commit = () => {
     const trimmed = val.trim()
     if (trimmed && trimmed !== title) onRename(trimmed)
     setIsRenaming(false)
+  }
+
+  const handleClearClick = () => {
+    if (clearPhase === 'confirm') {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current)
+      setClearPhase('idle')
+      onClear()
+    } else {
+      setClearPhase('confirm')
+      clearTimerRef.current = setTimeout(() => setClearPhase('idle'), 3000)
+    }
   }
 
   return (
@@ -169,13 +188,20 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
 
       {messageCount > 0 && (
         <button
-          onClick={onClear}
+          onClick={handleClearClick}
           className="btn btn-ghost"
-          style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
-          title="Clear conversation"
+          style={{
+            fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0,
+            ...(clearPhase === 'confirm' ? {
+              color: 'var(--red)',
+              borderColor: 'var(--red)',
+              background: 'var(--red-dim)'
+            } : {})
+          }}
+          title={clearPhase === 'confirm' ? "Confirm clear" : "Clear conversation"}
         >
           <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
-          {t('chat.clear') as string}
+          {clearPhase === 'confirm' ? (t('chat.confirm') !== 'chat.confirm' ? t('chat.confirm') : 'Confirm') as string : t('chat.clear') as string}
         </button>
       )}
     </div>
