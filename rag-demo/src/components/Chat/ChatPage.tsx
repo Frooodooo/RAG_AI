@@ -110,13 +110,32 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
   const [val, setVal] = useState(title)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false)
+  const clearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => { setVal(title) }, [title])
   useEffect(() => { if (isRenaming) { inputRef.current?.focus(); inputRef.current?.select() } }, [isRenaming])
+  useEffect(() => {
+    return () => {
+      if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current)
+    }
+  }, [])
 
   const commit = () => {
     const trimmed = val.trim()
     if (trimmed && trimmed !== title) onRename(trimmed)
     setIsRenaming(false)
+  }
+
+  const handleClearClick = () => {
+    if (isConfirmingClear) {
+      if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current)
+      setIsConfirmingClear(false)
+      onClear()
+    } else {
+      setIsConfirmingClear(true)
+      clearTimeoutRef.current = setTimeout(() => setIsConfirmingClear(false), 3000)
+    }
   }
 
   return (
@@ -169,13 +188,25 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
 
       {messageCount > 0 && (
         <button
-          onClick={onClear}
+          onClick={handleClearClick}
           className="btn btn-ghost"
-          style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
-          title="Clear conversation"
+          style={{
+            fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0,
+            ...(isConfirmingClear && {
+              color: 'var(--red)',
+              background: 'var(--red-dim)',
+              borderColor: 'var(--red)'
+            })
+          }}
+          title={isConfirmingClear ? 'Confirm clear' : 'Clear conversation'}
+          aria-live="polite"
         >
-          <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
-          {t('chat.clear') as string}
+          {isConfirmingClear ? (
+             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+          ) : (
+            <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
+          )}
+          {isConfirmingClear ? (t('chat.confirm') !== 'chat.confirm' ? t('chat.confirm') : 'Confirm') : t('chat.clear') as string}
         </button>
       )}
     </div>
@@ -220,7 +251,7 @@ function WelcomeScreen({ loading, onSend, t }: { loading: boolean; onSend: (t: s
       {/* Starter question chips */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', width: '100%', maxWidth: '800px' }}>
         {([1, 2, 3, 4] as const).map((i) => (
-          <StarterChip key={i} text={t(`chat.starter_${i}` as any) as string} label={t('chat.try_asking') as string} disabled={loading} onSend={onSend} />
+          <StarterChip key={i} text={t(`chat.starter_${i}`) as string} label={t('chat.try_asking') as string} disabled={loading} onSend={onSend} />
         ))}
       </div>
     </div>
