@@ -1,0 +1,15 @@
+💡 What:
+Optimized the session filtering logic in `SessionSidebar.tsx` by wrapping the filter computation in a `useMemo` hook and extracting the `search.toLowerCase()` call out of the inner loop callback.
+
+🎯 Why:
+Previously, the code performed `search.toLowerCase()` on every single iteration of the `.filter()` loop, resulting in redundant O(N) string conversions during each re-render. Additionally, the entire list was being recalculated constantly whenever minor updates occurred in the component.
+
+📊 Impact:
+- Prevents O(N) redundant string conversion allocations inside the loop.
+- Avoids recalculating the filtered list entirely on unrelated re-renders (like opening/closing the sidebar).
+- Improves responsiveness when typing in the search bar or receiving session updates.
+
+🔬 Measurement:
+- Verify that filtering still correctly matches chat session titles (case-insensitive).
+- Verify that emptying the search box returns all sessions instantly.
+- Verified that `pnpm tsc --noEmit` and `pnpm run lint` execute cleanly with no new errors introduced.
