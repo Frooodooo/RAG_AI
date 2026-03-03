@@ -115,7 +115,10 @@ const SessionItem = memo(function SessionItem({
                 // Ignore if event comes from a child interactive element
                 if ((e.target as HTMLElement).closest('button, input')) return
 
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === 'F2') {
+                    e.preventDefault()
+                    setIsRenaming(true)
+                } else if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     if (!isRenaming) onSelect(session.id)
                 }
