@@ -28,9 +28,19 @@ export function useExecutionTracker(executionId: string | null | undefined): Exe
     const [state, setState] = useState<ExecutionTrackState>(EMPTY);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+    // We can track the previous executionId in state to avoid unnecessary reset logic or synchronous setting inside useEffect
+    const [prevId, setPrevId] = useState<string | null | undefined>(executionId);
+
+    if (prevId !== executionId) {
+        setPrevId(executionId);
+        if (!executionId) {
+            // We set state during render, React handles this gracefully as a derived state transition
+            setState(EMPTY);
+        }
+    }
+
     useEffect(() => {
         if (!executionId) {
-            setState(EMPTY);
             return;
         }
 
