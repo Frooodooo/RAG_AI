@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from 'react'
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react'
 import { useLocale } from '../../i18n'
 import { formatRelativeTime } from '../../utils/date'
 import type { ChatSession } from '../../hooks/useChatSessions'
@@ -253,9 +253,14 @@ export default function SessionSidebar({
         })
     }, [])
 
-    const filtered = search.trim()
-        ? sessions.filter((s) => s.title.toLowerCase().includes(search.toLowerCase()))
-        : sessions
+    // ⚡ Bolt: optimize session filtering
+    // Memoized to prevent redundant filtering on parent re-renders, and
+    // extracted `search.toLowerCase()` outside the loop to avoid O(N) string conversions.
+    const filtered = React.useMemo(() => {
+        const query = search.trim().toLowerCase()
+        if (!query) return sessions
+        return sessions.filter((s) => s.title.toLowerCase().includes(query))
+    }, [sessions, search])
 
     return (
         <aside className={`session-sidebar ${collapsed ? 'collapsed' : ''}`}>
