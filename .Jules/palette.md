@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## $(date +%Y-%m-%d) - Inline Action Confirmation
+**Learning:** Destructive actions without confirmation popups or modals improve flow but require careful state management.
+**Action:** Always implement a two-step confirmation pattern for inline destructive actions (like "Clear conversation") using a local state (e.g., `idle` | `confirm`) and a `setTimeout` to automatically reset back to `idle` after a few seconds. Ensure the timeout is cleared if the component unmounts.
