@@ -9,3 +9,11 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-02-12 - Keyboard Shortcut Hints for Accessibility
+**Learning:** Adding keyboard shortcut hints directly to a button's `aria-label` and `title` (e.g., 'Expand sidebar (Ctrl+B)') significantly improves discoverability for power users and ensures screen reader users are also informed of the alternative interaction method.
+**Action:** Always include keyboard shortcuts in tooltips and ARIA labels when introducing global hotkeys for UI toggles or actions.
+
+## 2025-02-12 - Proper ARIA Attributes for Keyboard Shortcuts
+**Learning:** While appending a keyboard shortcut hint like "(Ctrl+B)" to a `title` attribute is good for discoverability, it shouldn't be hardcoded into the `aria-label`. Instead, the `aria-keyshortcuts` attribute (e.g., `aria-keyshortcuts="Control+b"`) is the semantic and accessible way to expose keyboard shortcuts to screen readers.
+**Action:** Use `aria-keyshortcuts` when implementing global shortcuts alongside standard `aria-label` descriptions, keeping the label clean while properly announcing the shortcut.
