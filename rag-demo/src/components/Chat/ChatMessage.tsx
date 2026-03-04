@@ -128,6 +128,11 @@ function ChatMessage({ message }: { message: Message }) {
     navigator.clipboard.writeText(message.content).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
+  /* ── AI message ── */
+  // ⚡ Bolt Optimization: Fixes "React Hook called conditionally" while retaining
+  // the performance benefit of memoizing the expensive Markdown parsing logic only for AI messages.
+  const renderedContent = useMemo(() => isUser ? null : renderMarkdown(message.content), [isUser, message.content])
+
   /* ── User message ── */
   if (isUser) {
     return (
@@ -169,9 +174,6 @@ function ChatMessage({ message }: { message: Message }) {
       </div>
     )
   }
-
-  /* ── AI message ── */
-  const renderedContent = useMemo(() => renderMarkdown(message.content), [message.content])
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">
