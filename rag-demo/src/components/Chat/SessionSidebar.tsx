@@ -253,6 +253,17 @@ export default function SessionSidebar({
         })
     }, [])
 
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                e.preventDefault()
+                toggleCollapse()
+            }
+        }
+        window.addEventListener('keydown', handleGlobalKeyDown)
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+    }, [toggleCollapse])
+
     const filtered = search.trim()
         ? sessions.filter((s) => s.title.toLowerCase().includes(search.toLowerCase()))
         : sessions
@@ -267,8 +278,9 @@ export default function SessionSidebar({
                 {/* Collapse toggle */}
                 <button
                     onClick={toggleCollapse}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    title={collapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
                     aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    aria-keyshortcuts="Control+b"
                     className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0"
                     style={{
                         background: 'transparent',
