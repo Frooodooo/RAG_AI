@@ -17,6 +17,14 @@ const EMPTY: ExecutionTrackState = {
 
 const POLL_INTERVAL_MS = 1500;
 
+function setsEqual(a: Set<string>, b: Set<string>) {
+    if (a.size !== b.size) return false;
+    for (const item of a) {
+        if (!b.has(item)) return false;
+    }
+    return true;
+}
+
 /**
  * Polls the n8n execution API for a given executionId and returns the
  * per-node state (done / error / running) in real time.
@@ -26,11 +34,20 @@ const POLL_INTERVAL_MS = 1500;
  */
 export function useExecutionTracker(executionId: string | null | undefined): ExecutionTrackState {
     const [state, setState] = useState<ExecutionTrackState>(EMPTY);
+    const [prevExecId, setPrevExecId] = useState(executionId);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // ⚡ Bolt: Bypass "Calling setState synchronously within an effect" lint error
+    // and avoid cascading renders by updating state during render when prop changes.
+    if (executionId !== prevExecId) {
+        setPrevExecId(executionId);
+        if (!executionId) {
+            setState(EMPTY);
+        }
+    }
 
     useEffect(() => {
         if (!executionId) {
-            setState(EMPTY);
             return;
         }
 
@@ -60,7 +77,19 @@ export function useExecutionTracker(executionId: string | null | undefined): Exe
                 const finished =
                     exec.finished || exec.status === 'success' || exec.status === 'error';
 
-                setState({ doneNodes, errorNodes, runningNodes, finished });
+                // ⚡ Bolt: Prevent unnecessary re-renders of the WorkflowVisualizer by only updating
+                // the state if the actual execution node sets have changed since the last poll.
+                setState((prev) => {
+                    if (
+                        prev.finished === finished &&
+                        setsEqual(prev.doneNodes, doneNodes) &&
+                        setsEqual(prev.errorNodes, errorNodes) &&
+                        setsEqual(prev.runningNodes, runningNodes)
+                    ) {
+                        return prev;
+                    }
+                    return { doneNodes, errorNodes, runningNodes, finished };
+                });
 
                 if (finished && intervalRef.current) {
                     clearInterval(intervalRef.current);
