@@ -17,6 +17,14 @@ const EMPTY: ExecutionTrackState = {
 
 const POLL_INTERVAL_MS = 1500;
 
+function setsAreEqual(a: Set<string>, b: Set<string>): boolean {
+    if (a.size !== b.size) return false;
+    for (const item of a) {
+        if (!b.has(item)) return false;
+    }
+    return true;
+}
+
 /**
  * Polls the n8n execution API for a given executionId and returns the
  * per-node state (done / error / running) in real time.
@@ -25,12 +33,23 @@ const POLL_INTERVAL_MS = 1500;
  * Polling stops automatically once the execution finishes.
  */
 export function useExecutionTracker(executionId: string | null | undefined): ExecutionTrackState {
-    const [state, setState] = useState<ExecutionTrackState>(EMPTY);
+    // If executionId transitions to null/undefined, we initialize or reset to EMPTY immediately.
+    const [state, setState] = useState<ExecutionTrackState>(() => executionId ? EMPTY : EMPTY);
+
+    // Derived state to catch executionId changes immediately without waiting for an effect
+    // This resolves the `react-hooks/set-state-in-effect` linting error.
+    const [prevExecId, setPrevExecId] = useState(executionId);
+    if (executionId !== prevExecId) {
+        setPrevExecId(executionId);
+        if (!executionId) {
+            setState(EMPTY);
+        }
+    }
+
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         if (!executionId) {
-            setState(EMPTY);
             return;
         }
 
@@ -60,7 +79,17 @@ export function useExecutionTracker(executionId: string | null | undefined): Exe
                 const finished =
                     exec.finished || exec.status === 'success' || exec.status === 'error';
 
-                setState({ doneNodes, errorNodes, runningNodes, finished });
+                setState(prevState => {
+                    if (
+                        prevState.finished === finished &&
+                        setsAreEqual(prevState.doneNodes, doneNodes) &&
+                        setsAreEqual(prevState.errorNodes, errorNodes) &&
+                        setsAreEqual(prevState.runningNodes, runningNodes)
+                    ) {
+                        return prevState;
+                    }
+                    return { doneNodes, errorNodes, runningNodes, finished };
+                });
 
                 if (finished && intervalRef.current) {
                     clearInterval(intervalRef.current);
