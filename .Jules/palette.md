@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-05-24 - Double-tap Confirmation for Destructive Actions
+**Learning:** Users can accidentally click destructive buttons (like "Clear conversation"). While modal dialogs are safe, they are heavy and break flow for simple actions.
+**Action:** Implement a "double-tap" confirmation pattern for inline destructive actions: the first click enters a confirmation state (with clear visual changes like red text/background and updated text) with an auto-reset timer (e.g., 3 seconds). The second click confirms.
