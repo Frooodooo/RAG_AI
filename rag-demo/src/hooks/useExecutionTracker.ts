@@ -18,6 +18,17 @@ const EMPTY: ExecutionTrackState = {
 const POLL_INTERVAL_MS = 1500;
 
 /**
+ * Helper to check structural equality of two sets
+ */
+function areSetsEqual(a: Set<string>, b: Set<string>): boolean {
+    if (a.size !== b.size) return false;
+    for (const item of a) {
+        if (!b.has(item)) return false;
+    }
+    return true;
+}
+
+/**
  * Polls the n8n execution API for a given executionId and returns the
  * per-node state (done / error / running) in real time.
  *
@@ -60,7 +71,19 @@ export function useExecutionTracker(executionId: string | null | undefined): Exe
                 const finished =
                     exec.finished || exec.status === 'success' || exec.status === 'error';
 
-                setState({ doneNodes, errorNodes, runningNodes, finished });
+                setState((prevState) => {
+                    // ⚡ Bolt: Prevent unnecessary React re-renders by checking structural
+                    // equality before committing a state update during polling.
+                    if (
+                        prevState.finished === finished &&
+                        areSetsEqual(prevState.doneNodes, doneNodes) &&
+                        areSetsEqual(prevState.errorNodes, errorNodes) &&
+                        areSetsEqual(prevState.runningNodes, runningNodes)
+                    ) {
+                        return prevState;
+                    }
+                    return { doneNodes, errorNodes, runningNodes, finished };
+                });
 
                 if (finished && intervalRef.current) {
                     clearInterval(intervalRef.current);
