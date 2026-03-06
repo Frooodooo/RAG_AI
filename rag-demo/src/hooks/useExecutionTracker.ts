@@ -17,6 +17,14 @@ const EMPTY: ExecutionTrackState = {
 
 const POLL_INTERVAL_MS = 1500;
 
+function setsAreEqual(a: Set<string>, b: Set<string>): boolean {
+    if (a.size !== b.size) return false;
+    for (const item of a) {
+        if (!b.has(item)) return false;
+    }
+    return true;
+}
+
 /**
  * Polls the n8n execution API for a given executionId and returns the
  * per-node state (done / error / running) in real time.
@@ -26,11 +34,17 @@ const POLL_INTERVAL_MS = 1500;
  */
 export function useExecutionTracker(executionId: string | null | undefined): ExecutionTrackState {
     const [state, setState] = useState<ExecutionTrackState>(EMPTY);
+    const [prevId, setPrevId] = useState(executionId);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Synchronously reset state if executionId changes (avoids react-hooks/set-state-in-effect)
+    if (executionId !== prevId) {
+        setPrevId(executionId);
+        setState(EMPTY);
+    }
 
     useEffect(() => {
         if (!executionId) {
-            setState(EMPTY);
             return;
         }
 
@@ -60,7 +74,20 @@ export function useExecutionTracker(executionId: string | null | undefined): Exe
                 const finished =
                     exec.finished || exec.status === 'success' || exec.status === 'error';
 
-                setState({ doneNodes, errorNodes, runningNodes, finished });
+                // ⚡ Bolt: Prevent redundant re-renders by doing a deep comparison
+                // of the Sets. Since we poll every 1.5s, avoiding setState when
+                // structural state hasn't changed saves the entire WorkflowViz from re-rendering.
+                setState(prev => {
+                    if (
+                        prev.finished === finished &&
+                        setsAreEqual(prev.doneNodes, doneNodes) &&
+                        setsAreEqual(prev.errorNodes, errorNodes) &&
+                        setsAreEqual(prev.runningNodes, runningNodes)
+                    ) {
+                        return prev;
+                    }
+                    return { doneNodes, errorNodes, runningNodes, finished };
+                });
 
                 if (finished && intervalRef.current) {
                     clearInterval(intervalRef.current);
