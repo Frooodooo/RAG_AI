@@ -9,3 +9,10 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-02-19 - Accessible Icon-Only Elements Pattern
+**Learning:** Found a recurring pattern of missing ARIA attributes and keyboard focus styling on icon-only interactive elements (like Download, Delete, Search) throughout the app. Custom-styled buttons without default browser rings need explicit focus outlines.
+**Action:** When creating or modifying icon-only buttons, always ensure:
+1. `aria-label` is applied to the button element.
+2. `aria-hidden="true"` is applied to any child `svg` icons.
+3. `focus-visible:outline` with negative offsets (e.g., `focus-visible:outline-offset-[-2px]`) are used for inline or custom-styled elements to prevent clipping.
