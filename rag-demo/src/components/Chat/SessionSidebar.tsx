@@ -253,6 +253,18 @@ export default function SessionSidebar({
         })
     }, [])
 
+    // Keyboard shortcut for toggling sidebar
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                e.preventDefault()
+                toggleCollapse()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [toggleCollapse])
+
     // ⚡ Bolt: Memoized filtered sessions and hoisted toLowerCase() outside the loop
     // to prevent O(N) string conversions and recalculations on every render tick.
     const filtered = useMemo(() => {
@@ -272,9 +284,10 @@ export default function SessionSidebar({
                 {/* Collapse toggle */}
                 <button
                     onClick={toggleCollapse}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    title={collapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
                     aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0"
+                    aria-keyshortcuts="Control+b"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent)]"
                     style={{
                         background: 'transparent',
                         color: 'var(--text-muted)',
@@ -341,7 +354,7 @@ export default function SessionSidebar({
                 {sessions.length > 3 && (
                     <div className="px-2 pt-2 pb-1">
                         <div
-                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
+                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-2px] focus-within:outline-[var(--accent)]"
                             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)' }}
                         >
                             <SearchIcon width="14" height="14" strokeWidth="2"
@@ -364,9 +377,10 @@ export default function SessionSidebar({
                                     }}
                                     title="Clear search"
                                     aria-label="Clear search"
+                                    className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] rounded-sm"
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
-                                    <XIcon width="10" height="10" strokeWidth="2.5" />
+                                    <XIcon width="10" height="10" strokeWidth="2.5" aria-hidden="true" />
                                 </button>
                             )}
                         </div>
