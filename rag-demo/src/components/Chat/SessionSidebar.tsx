@@ -253,6 +253,18 @@ export default function SessionSidebar({
         })
     }, [])
 
+    // Keyboard shortcut for toggling sidebar
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                e.preventDefault()
+                toggleCollapse()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [toggleCollapse])
+
     // ⚡ Bolt: Memoized filtered sessions and hoisted toLowerCase() outside the loop
     // to prevent O(N) string conversions and recalculations on every render tick.
     const filtered = useMemo(() => {
@@ -272,8 +284,9 @@ export default function SessionSidebar({
                 {/* Collapse toggle */}
                 <button
                     onClick={toggleCollapse}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    title={collapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
                     aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    aria-keyshortcuts="Control+b"
                     className="w-8 h-8 flex items-center justify-center rounded-lg transition-all shrink-0"
                     style={{
                         background: 'transparent',
