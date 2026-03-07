@@ -304,7 +304,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <span>Download failed — {downloadError}</span>
-          <button onClick={() => setDownloadError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
+          <button onClick={() => setDownloadError(null)} aria-label="Close error message" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
         </div>
       )}
 
