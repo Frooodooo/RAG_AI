@@ -128,6 +128,8 @@ function ChatMessage({ message }: { message: Message }) {
     navigator.clipboard.writeText(message.content).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
+  const renderedContent = useMemo(() => isUser ? null : renderMarkdown(message.content), [isUser, message.content])
+
   /* ── User message ── */
   if (isUser) {
     return (
@@ -171,8 +173,6 @@ function ChatMessage({ message }: { message: Message }) {
   }
 
   /* ── AI message ── */
-  const renderedContent = useMemo(() => renderMarkdown(message.content), [message.content])
-
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">
       {/* Avatar */}
