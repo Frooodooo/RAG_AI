@@ -105,7 +105,7 @@ function CodeBlock({ lang, code }: { lang: string; code: string }) {
     <div className="md-code-block">
       <div className="md-code-header">
         <span className="md-code-lang">{lang}</span>
-        <button className="md-copy-btn" onClick={handleCopy}>
+        <button className="md-copy-btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent)]" onClick={handleCopy}>
           {copied
             ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
             : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
@@ -150,7 +150,7 @@ function ChatMessage({ message }: { message: Message }) {
             <span style={{ fontSize: '13px', color: 'var(--t3)', opacity: 0.7 }}>{time}</span>
             <button
               onClick={handleCopy}
-              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 hover:bg-[rgba(255,255,255,0.06)]"
+              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent)] transition-all duration-150 hover:bg-[rgba(255,255,255,0.06)]"
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 fontSize: '11px', padding: '2px 6px', borderRadius: 'var(--r-xs)',
@@ -198,7 +198,7 @@ function ChatMessage({ message }: { message: Message }) {
           <span style={{ fontSize: '13px', color: 'var(--t3)', opacity: 0.6 }}>{time}</span>
           <button
             onClick={handleCopy}
-            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 hover:bg-[rgba(255,255,255,0.05)]"
+            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent)] transition-all duration-150 hover:bg-[rgba(255,255,255,0.05)]"
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               fontSize: '11px', padding: '2px 6px', borderRadius: 'var(--r-xs)',
