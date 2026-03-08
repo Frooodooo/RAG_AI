@@ -1,11 +1,9 @@
 import { useState, useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import {
-    type Message,
-    type ChatSession,
-    loadSessions,
-    saveSessions,
-} from './chatSessionStore'
+import { loadSessions, saveSessions } from './chatSessionStore'
+import type { Message, ChatSession } from './chatSessionStore'
+
+export type { Message, ChatSession }
 
 const ACTIVE_KEY = 'rag-active-session'
 
