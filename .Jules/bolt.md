@@ -9,3 +9,7 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2024-05-25 - Splitting Heavy Dependencies
+**Learning:** Initializing the root frontend application wrapper (`App.tsx`) with statically imported visualizers containing heavy canvas libraries (`@xyflow/react`) bloats the application's initial main bundle significantly. Since the visualizer is often cordoned off behind a specific UI tab, it is an excellent candidate for code splitting.
+**Action:** When acting as the 'Bolt' persona, focus on measurable optimizations like using `React.lazy` and `Suspense` to split heavy dependencies (e.g., `@xyflow/react` in `WorkflowVisualizer`) so they don't delay the initial paint of the critical chat application route.
