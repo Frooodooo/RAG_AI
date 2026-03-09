@@ -175,6 +175,7 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
         onClick={(e) => onDownload(doc.id, doc.filename, e)}
         disabled={isDownloading}
         title={isDownloading ? 'Downloading…' : 'Download document'}
+        aria-label={isDownloading ? 'Downloading…' : 'Download document'}
         className="hover:bg-[rgba(255,255,255,0.05)] transition-all duration-[140ms]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
@@ -203,6 +204,7 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
         onClick={(e) => onDelete(doc.id, e)}
         disabled={isDeleting}
         title="Remove document"
+        aria-label="Remove document"
         className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
