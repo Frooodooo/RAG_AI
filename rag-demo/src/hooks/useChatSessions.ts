@@ -141,3 +141,5 @@ export function useChatSessions() {
         clearSession,
     }
 }
+
+export type { Message, ChatSession }
