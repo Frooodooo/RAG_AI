@@ -128,11 +128,12 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
         {/* Icon */}
-        <ChatBubbleIcon width="16" height="16" stroke="var(--t-accent)" strokeWidth="2" style={{ flexShrink: 0 }} />
+        <ChatBubbleIcon width="16" height="16" stroke="var(--t-accent)" strokeWidth="2" style={{ flexShrink: 0 }} aria-hidden="true" />
 
         {isRenaming ? (
           <input
             ref={inputRef}
+            aria-label="Rename conversation"
             value={val}
             onChange={(e) => setVal(e.target.value)}
             onBlur={commit}
@@ -156,7 +157,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
             <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--t1)', maxWidth: '420px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {title}
             </span>
-            <EditIcon width="14" height="14" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--t3)', opacity: 0.5, flexShrink: 0 }} />
+            <EditIcon width="14" height="14" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--t3)', opacity: 0.5, flexShrink: 0 }} aria-hidden="true" />
           </button>
         )}
 
@@ -174,7 +175,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
           style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
           title="Clear conversation"
         >
-          <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
+          <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" aria-hidden="true" />
           {t('chat.clear') as string}
         </button>
       )}
