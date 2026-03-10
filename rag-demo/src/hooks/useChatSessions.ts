@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import {
     type Message,
@@ -42,7 +42,12 @@ export function useChatSessions() {
         localStorage.setItem(ACTIVE_KEY, id)
     }, [])
 
-    const activeSession = sessions.find((s) => s.id === activeSessionId) ?? sessions[0] ?? makeSession()
+    // ⚡ Bolt: Memoized activeSession calculation
+    // Finding the active session array on every single render is O(N) where N is number of sessions.
+    // Given ChatPage re-renders heavily (e.g. typing indicators), this avoids repeated lookups.
+    const activeSession = useMemo(() =>
+        sessions.find((s) => s.id === activeSessionId) ?? sessions[0] ?? makeSession(),
+    [sessions, activeSessionId])
 
     /** Create a new empty session and make it active. Returns its id. */
     const createSession = useCallback((): string => {

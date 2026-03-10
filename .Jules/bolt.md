@@ -9,3 +9,7 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2024-05-25 - React Hook derived state returning new object references
+**Learning:** In custom hooks that manage a list of items (like `useChatSessions`), calculating the "active" item derived from the list and an ID on every render pass is an O(N) operation. More importantly, if the lookup fails and a fallback object is created (e.g., `makeSession()`), it returns a new object reference on every single render. This breaks referential equality for child components and causes unnecessary re-renders across the entire tree.
+**Action:** Always wrap derived list state and active item lookups in `useMemo`, particularly when they provide fallback objects or are consumed by heavily updated components like a Chat UI.
