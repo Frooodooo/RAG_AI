@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-05-15 - ARIA Labels for Icon-Only Buttons
+**Learning:** Icon-only interactive elements (like download or delete buttons) must explicitly include an `aria-label` attribute, as relying solely on the `title` attribute is insufficient for screen-reader accessibility. The `rag-demo` repository frequently uses `title` without `aria-label` for utility buttons.
+**Action:** Always verify that interactive buttons have visible text or an explicit `aria-label` attribute, especially when implementing or modifying tables, sidebars, and action menus in `rag-demo`.
