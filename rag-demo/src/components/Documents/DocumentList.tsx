@@ -316,13 +316,14 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           display: 'flex', alignItems: 'center', padding: '0 12px',
           height: '40px'
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="2" style={{ marginRight: '8px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="2" style={{ marginRight: '8px' }} aria-hidden="true">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
           <input
             type="text"
             placeholder="Search documents..."
+            aria-label="Search documents"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
