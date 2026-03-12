@@ -175,6 +175,7 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
         onClick={(e) => onDownload(doc.id, doc.filename, e)}
         disabled={isDownloading}
         title={isDownloading ? 'Downloading…' : 'Download document'}
+        aria-label={isDownloading ? 'Downloading document' : 'Download document'}
         className="hover:bg-[rgba(255,255,255,0.05)] transition-all duration-[140ms]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
@@ -186,11 +187,11 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
       >
         {isDownloading ? (
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            style={{ animation: 'spin 1s linear infinite' }}>
+            aria-hidden="true" style={{ animation: 'spin 1s linear infinite' }}>
             <path d="M21 12a9 9 0 11-6.219-8.56" />
           </svg>
         ) : (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
@@ -203,6 +204,7 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
         onClick={(e) => onDelete(doc.id, e)}
         disabled={isDeleting}
         title="Remove document"
+        aria-label="Remove document"
         className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
@@ -214,11 +216,11 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
       >
         {isDeleting ? (
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            style={{ animation: 'spin 1s linear infinite' }}>
+            aria-hidden="true" style={{ animation: 'spin 1s linear infinite' }}>
             <path d="M21 12a9 9 0 11-6.219-8.56" />
           </svg>
         ) : (
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6l-1 14H6L5 6" />
             <path d="M10 11v6M14 11v6" />
@@ -300,11 +302,11 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           display: 'flex', alignItems: 'center', gap: '10px',
           fontSize: '13px', color: '#f87171',
         }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" style={{ flexShrink: 0 }}>
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <span>Download failed — {downloadError}</span>
-          <button onClick={() => setDownloadError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
+          <button aria-label="Dismiss error" onClick={() => setDownloadError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
         </div>
       )}
 
@@ -316,12 +318,13 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           display: 'flex', alignItems: 'center', padding: '0 12px',
           height: '40px'
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="2" style={{ marginRight: '8px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="2" aria-hidden="true" style={{ marginRight: '8px' }}>
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
           <input
             type="text"
+            aria-label="Search documents"
             placeholder="Search documents..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
