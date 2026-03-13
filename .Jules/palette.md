@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - ARIA Labels for Search/Rename Inputs
+**Learning:** Text inputs that act as a search or a rename field often lack visible labels (`<label>`) because their context is visually implied by their location (e.g., a magnifying glass icon nearby, or replacing a title on double-click). However, this leaves screen reader users without context when the input receives focus.
+**Action:** When creating or modifying inputs that do not have an associated `<label>` (like inline rename fields or search bars with placeholders), always explicitly add an `aria-label` attribute describing the input's purpose (e.g., `aria-label="Rename conversation"` or `aria-label="Search documents"`).
