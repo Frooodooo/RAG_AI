@@ -141,6 +141,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
               if (e.key === 'Escape') { e.preventDefault(); setIsRenaming(false); setVal(title) }
             }}
             maxLength={80}
+            aria-label="Rename session"
             style={{
               flex: 1, minWidth: 0, fontSize: '16px', fontWeight: 600,
               background: 'transparent', outline: 'none', color: 'var(--t1)',

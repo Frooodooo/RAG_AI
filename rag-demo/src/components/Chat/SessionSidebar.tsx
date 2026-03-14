@@ -52,6 +52,7 @@ function RenameInput({
             }}
             onClick={(e) => e.stopPropagation()}
             maxLength={80}
+            aria-label="Rename session"
         />
     )
 }
