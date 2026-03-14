@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { getHealth } from './api'
 import { useLocale, type Locale } from './i18n'
 import ChatPage from './components/Chat/ChatPage'
-import WorkflowVisualizer from './components/WorkflowViz/WorkflowVisualizer'
 import DocumentsPage from './components/Documents/DocumentsPage'
+
+// ⚡ Bolt: Lazily load WorkflowVisualizer since @xyflow/react is heavy (~300kb)
+// and only needed when the user explicitly opens the "Workflow" tab.
+const WorkflowVisualizer = lazy(() => import('./components/WorkflowViz/WorkflowVisualizer'))
 
 type Tab = 'chat' | 'workflow' | 'documents'
 type WorkflowType = 'chat' | 'upload'
@@ -241,11 +244,22 @@ function App() {
                 )}
               </div>
             </div>
-            <WorkflowVisualizer
-              isActive={isChatProcessing}
-              executionId={executionId}
-              workflowType={executionId ? activeWorkflow : selectedWorkflow}
-            />
+            <Suspense fallback={
+              <div style={{ padding: '24px', color: 'var(--t3)', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+                    <path d="M21 12a9 9 0 11-6.219-8.56" />
+                  </svg>
+                  <span>Loading visualizer...</span>
+                </div>
+              </div>
+            }>
+              <WorkflowVisualizer
+                isActive={isChatProcessing}
+                executionId={executionId}
+                workflowType={executionId ? activeWorkflow : selectedWorkflow}
+              />
+            </Suspense>
           </div>
         )}
 
