@@ -203,6 +203,7 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
         onClick={(e) => onDelete(doc.id, e)}
         disabled={isDeleting}
         title="Remove document"
+        aria-label="Remove document"
         className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
@@ -304,7 +305,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <span>Download failed — {downloadError}</span>
-          <button onClick={() => setDownloadError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
+          <button onClick={() => setDownloadError(null)} aria-label="Close error message" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
         </div>
       )}
 
@@ -323,6 +324,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           <input
             type="text"
             placeholder="Search documents..."
+            aria-label="Search documents"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
