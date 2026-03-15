@@ -9,3 +9,6 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+## 2026-03-15 - DocumentList ARIA additions
+**Learning:** The DocumentList component had multiple interactive elements lacking an `aria-label` (download, delete, error close, and search), which screen readers rely on for context since they only display icons.
+**Action:** Applied `aria-label` attributes to all strictly icon-only buttons and unlabelled inputs to improve accessibility.
