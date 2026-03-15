@@ -9,3 +9,7 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2025-03-15 - React.lazy Code Splitting for Heavy Chart Libraries
+**Learning:** Graphing/Chart libraries like `@xyflow/react` can dramatically increase the main bundle size (e.g., adding ~185KB min+gzip) and trigger chunk size warnings, severely slowing down initial page loads even if the chart tab is not the default view.
+**Action:** When code-splitting a heavy dependency using `React.lazy`, split at the boundary of the highest-level component that consumes it (e.g., `App.tsx` importing `WorkflowVisualizer`). Attempting to split individual sub-components within a file that still synchronously imports library hooks will defeat the code splitting.
