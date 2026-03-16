@@ -9,3 +9,6 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+## 2024-03-16 - Add ARIA labels to document management inputs and buttons
+**Learning:** Found multiple icon-only buttons (download, delete, dismiss error) and inputs lacking visual labels (search inputs, document select) across `DocumentList.tsx` and `DocSearchPanel.tsx` that were inaccessible to screen readers.
+**Action:** When implementing form inputs without a visible `<label>` (e.g., search inputs with placeholders or inline rename fields), always include an `aria-label` attribute to ensure accessibility for screen readers. Same applies to icon-only buttons.
