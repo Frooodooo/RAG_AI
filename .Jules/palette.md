@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-06-13 - Inline Edits and Accessibility
+**Learning:** Inline input fields, such as those used for double-click-to-rename features in sidebars or headers, often lack visible labels by design. Screen readers will announce these as "edit, blank" without context.
+**Action:** Always add an `aria-label` (e.g., `aria-label="Rename conversation"`) to inline input fields to provide essential context for screen reader users when a visual `<label>` element cannot be used.

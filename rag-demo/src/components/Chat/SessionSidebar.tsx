@@ -44,6 +44,7 @@ function RenameInput({
             ref={inputRef}
             className="session-rename-input"
             value={value}
+            aria-label="Rename conversation"
             onChange={(e) => setValue(e.target.value)}
             onBlur={commit}
             onKeyDown={(e) => {
