@@ -67,6 +67,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
         <select
           value={selectedDoc}
           onChange={e => setSelectedDoc(e.target.value)}
+          aria-label="Filter by document"
           style={{
             padding: '7px 10px', borderRadius: 'var(--r-sm)', fontSize: '12px',
             background: 'var(--bg-1)', border: '1px solid var(--b1)',
@@ -85,6 +86,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
           ref={inputRef}
           value={query}
           onChange={e => setQuery(e.target.value)}
+          aria-label="Search keywords, phrases, or FTS5 expressions"
           placeholder='Search keywords, phrases, or FTS5 expressions like "budget AND 2024"'
           style={{
             flex: 1, padding: '7px 12px', borderRadius: 'var(--r-sm)', fontSize: '13px',
@@ -99,6 +101,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
         <button
           type="submit"
           disabled={searching || !query.trim() || readyDocs.length === 0}
+          aria-label="Search keywords in documents"
           className="btn btn-primary"
           style={{ padding: '7px 16px', fontSize: '13px', flexShrink: 0 }}
         >

@@ -322,6 +322,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           </svg>
           <input
             type="text"
+            aria-label="Search documents"
             placeholder="Search documents..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
