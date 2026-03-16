@@ -95,9 +95,10 @@ interface DocumentRowProps {
   isLast: boolean
   onDelete: (id: string, e: React.MouseEvent) => void
   onDownload: (id: string, filename: string, e: React.MouseEvent) => void
+  t: (k: any) => any
 }
 
-const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, isLast, onDelete, onDownload }: DocumentRowProps) {
+const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, isLast, onDelete, onDownload, t }: DocumentRowProps) {
   const ext = doc.filename.split('.').pop()?.toLowerCase() || 'txt'
   const colors = EXT_COLORS[ext] || EXT_COLORS.document
 
@@ -174,8 +175,9 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
       <button
         onClick={(e) => onDownload(doc.id, doc.filename, e)}
         disabled={isDownloading}
-        title={isDownloading ? 'Downloading…' : 'Download document'}
-        className="hover:bg-[rgba(255,255,255,0.05)] transition-all duration-[140ms]"
+        title={isDownloading ? t('docs.downloading') as string : t('docs.download') as string}
+        aria-label={isDownloading ? t('docs.downloading') as string : t('docs.download') as string}
+        className="hover:bg-[rgba(255,255,255,0.05)] transition-all duration-[140ms] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--accent)]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
           background: 'transparent', border: '1px solid transparent',
@@ -202,8 +204,9 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
       <button
         onClick={(e) => onDelete(doc.id, e)}
         disabled={isDeleting}
-        title="Remove document"
-        className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms]"
+        title={t('docs.delete') as string}
+        aria-label={t('docs.delete') as string}
+        className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#f87171]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
           background: 'transparent', border: '1px solid transparent',
@@ -322,7 +325,8 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           </svg>
           <input
             type="text"
-            placeholder="Search documents..."
+            placeholder={t('docs.search_placeholder') as string}
+            aria-label={t('docs.search_placeholder') as string}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
@@ -393,6 +397,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
               isLast={idx === filteredDocs.length - 1}
               onDelete={handleDelete}
               onDownload={handleDownload}
+              t={t}
             />
           ))}
 
