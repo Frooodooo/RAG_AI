@@ -14,6 +14,8 @@ const translations = {
         // Header
         'header.title': 'Rīgas pašvaldība',
         'header.subtitle': 'Vietējais AI asistents',
+        'header.lang_lv': 'Latviešu',
+        'header.lang_en': 'Angļu',
 
         // Chat
         'chat.welcome_title': 'Jautājiet jebko',
@@ -64,6 +66,8 @@ const translations = {
         // Header
         'header.title': 'Riga Municipality',
         'header.subtitle': 'Local AI Assistant',
+        'header.lang_lv': 'Latvian',
+        'header.lang_en': 'English',
 
         // Chat
         'chat.welcome_title': 'Ask anything',
