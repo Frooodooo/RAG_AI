@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { getHealth } from './api'
 import { useLocale, type Locale } from './i18n'
 import ChatPage from './components/Chat/ChatPage'
-import WorkflowVisualizer from './components/WorkflowViz/WorkflowVisualizer'
 import DocumentsPage from './components/Documents/DocumentsPage'
+
+// Performance optimization: Lazy load WorkflowVisualizer (and its heavy @xyflow/react dependency)
+// to reduce the main bundle size since it's only needed on the workflow tab.
+const WorkflowVisualizer = lazy(() => import('./components/WorkflowViz/WorkflowVisualizer'))
 
 type Tab = 'chat' | 'workflow' | 'documents'
 type WorkflowType = 'chat' | 'upload'
@@ -241,11 +244,13 @@ function App() {
                 )}
               </div>
             </div>
-            <WorkflowVisualizer
-              isActive={isChatProcessing}
-              executionId={executionId}
-              workflowType={executionId ? activeWorkflow : selectedWorkflow}
-            />
+            <Suspense fallback={null}>
+              <WorkflowVisualizer
+                isActive={isChatProcessing}
+                executionId={executionId}
+                workflowType={executionId ? activeWorkflow : selectedWorkflow}
+              />
+            </Suspense>
           </div>
         )}
 
