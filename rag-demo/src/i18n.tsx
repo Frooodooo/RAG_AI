@@ -54,6 +54,10 @@ const translations = {
         // Workflow
         'wf.title': 'Kā darbojas RAG sistēma',
         'wf.description': 'Vizuāla pārskats par dokumentu apstrādes un atbilžu ģenerēšanas plūsmu',
+
+        // Language Switcher
+        'lang.lv': 'Latviešu',
+        'lang.en': 'English',
     },
     en: {
         // Navigation
@@ -104,6 +108,10 @@ const translations = {
         // Workflow
         'wf.title': 'How the RAG System Works',
         'wf.description': 'Visual overview of the document processing and answer generation pipeline',
+
+        // Language Switcher
+        'lang.lv': 'Latvian',
+        'lang.en': 'English',
     },
 } as const
 
