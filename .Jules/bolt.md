@@ -9,3 +9,7 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2025-02-28 - Lazy Loading Heavy Chart/Visualization Dependencies
+**Learning:** Importing heavy visualization libraries like `@xyflow/react` synchronously at the root `App.tsx` level forces the main bundle to incur a ~600KB size penalty, degrading initial load performance, even if the user never navigates to the visualization tab.
+**Action:** Use `React.lazy()` and `<Suspense>` to code-split heavy visualization components that are rendered conditionally (e.g. behind a secondary tab). This defers loading the dependency until it is actually needed by the user.
