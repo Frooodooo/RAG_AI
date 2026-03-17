@@ -36,6 +36,8 @@ const translations = {
 
         // Documents
         'docs.title': 'Dokumentu pārvaldība',
+        'lang.lv': 'Latviešu: lv',
+        'lang.en': 'Angļu: en',
         'docs.description': 'Augšupielādējiet dokumentus, lai izveidotu zināšanu bāzi. Atbalstītie formāti: PDF, DOCX, XLSX',
         'docs.upload_title': 'Augšupielādēt dokumentu',
         'docs.upload_desc': 'Velciet failu šeit vai noklikšķiniet, lai izvēlētos',
@@ -86,6 +88,8 @@ const translations = {
 
         // Documents
         'docs.title': 'Document Management',
+        'lang.lv': 'Latvian: lv',
+        'lang.en': 'English: en',
         'docs.description': 'Upload documents to build your knowledge base. Supported formats: PDF, DOCX, XLSX',
         'docs.upload_title': 'Upload Document',
         'docs.upload_desc': 'Drag a file here or click to browse',
