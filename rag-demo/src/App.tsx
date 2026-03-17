@@ -128,6 +128,7 @@ function App() {
               <button
                 key={lang}
                 onClick={() => setLocale(lang)}
+                aria-label={`${t(`lang.${lang}` as any)}: ${lang}`}
                 style={{
                   padding: '6px 10px',
                   fontSize: '13px',
