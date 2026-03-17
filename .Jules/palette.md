@@ -9,3 +9,4 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+## 2024-05-25 - Missing ARIA Labels on Form Inputs Without Visible Labels\n**Learning:** The 'Cosmos Dark' design system heavily relies on inputs with placeholders as their sole label. While visually distinct, inputs without visible labels or `aria-label` attributes are inaccessible to screen reader users.\n**Action:** When implementing form inputs without a visible `<label>` (e.g., search inputs with placeholders, select elements, or inline rename fields), always include an `aria-label` attribute to ensure accessibility for screen readers.
