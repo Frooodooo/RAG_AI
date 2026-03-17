@@ -135,6 +135,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
             ref={inputRef}
             value={val}
             onChange={(e) => setVal(e.target.value)}
+            aria-label={t('chat.rename') as string}
             onBlur={commit}
             onKeyDown={(e) => {
               if (e.key === 'Enter') { e.preventDefault(); commit() }
