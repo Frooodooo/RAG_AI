@@ -1,11 +1,9 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { getHealth } from './api'
 import { useLocale, type Locale } from './i18n'
 import ChatPage from './components/Chat/ChatPage'
+import WorkflowVisualizer from './components/WorkflowViz/WorkflowVisualizer'
 import DocumentsPage from './components/Documents/DocumentsPage'
-
-// ⚡ Bolt: Code-split WorkflowVisualizer to reduce initial bundle size by lazy loading @xyflow/react
-const WorkflowVisualizer = lazy(() => import('./components/WorkflowViz/WorkflowVisualizer'))
 
 type Tab = 'chat' | 'workflow' | 'documents'
 type WorkflowType = 'chat' | 'upload'
@@ -243,13 +241,11 @@ function App() {
                 )}
               </div>
             </div>
-            <Suspense fallback={<div style={{ padding: '20px', color: 'var(--t3)', display: 'flex', justifyContent: 'center' }}>Loading workflow...</div>}>
-              <WorkflowVisualizer
-                isActive={isChatProcessing}
-                executionId={executionId}
-                workflowType={executionId ? activeWorkflow : selectedWorkflow}
-              />
-            </Suspense>
+            <WorkflowVisualizer
+              isActive={isChatProcessing}
+              executionId={executionId}
+              workflowType={executionId ? activeWorkflow : selectedWorkflow}
+            />
           </div>
         )}
 
