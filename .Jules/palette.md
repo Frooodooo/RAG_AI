@@ -9,3 +9,6 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+## 2026-03-19 - Adding ARIA labels to unlabelled inputs and icon-only buttons
+**Learning:** Found that multiple interactive elements like sidebar toggles, search bars, and inline rename inputs lacked accessible names, violating WCAG standards. The existing Cosmos Dark design system uses extensive inline styling and custom icons without explicit labels.
+**Action:** Always verify icon-only buttons and bare inputs (like search bars with only placeholders) have an explicit `aria-label` added. When adding labels, always use the existing `t()` function from `useLocale` to ensure the screen reader text is correctly localized in both Latvian and English.

@@ -46,6 +46,7 @@ function RenameInput({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onBlur={commit}
+            aria-label={t('chat.rename' as any) as string}
             onKeyDown={(e) => {
                 if (e.key === 'Enter') { e.preventDefault(); commit() }
                 if (e.key === 'Escape') { e.preventDefault(); onCancel() }
