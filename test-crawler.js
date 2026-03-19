@@ -35,6 +35,7 @@ async function crawlNews() {
 
     const $ = cheerio.load(html);
     const articles = [];
+    const seenUrls = new Set(); // ⚡ Bolt: Use a Set for O(1) URL deduplication lookups
 
     // Select news items
     $('a[href*="/lv/jaunumi/"]').each((i, el) => {
@@ -42,7 +43,8 @@ async function crawlNews() {
         const title = $(el).text().trim();
         if (href && title && title.length > 20) {
             const fullUrl = href.startsWith('http') ? href : baseUrl + href;
-            if (!articles.find(a => a.url === fullUrl)) {
+            if (!seenUrls.has(fullUrl)) {
+                seenUrls.add(fullUrl);
                 articles.push({ url: fullUrl, title });
             }
         }

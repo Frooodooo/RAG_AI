@@ -9,3 +9,6 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+## 2024-05-19 - O(n^2) URL deduplication in crawler
+**Learning:** In `scrape-riga.js` and `test-crawler.js`, using `Array.prototype.find` inside an `.each()` loop to check if a URL already exists causes an O(n^2) time complexity. For a large number of extracted links, this could significantly slow down parsing.
+**Action:** When tracking unique URLs while scraping or crawling, use a `Set` for O(1) lookups to ensure O(n) overall complexity.
