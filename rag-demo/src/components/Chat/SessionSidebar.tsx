@@ -25,6 +25,7 @@ function RenameInput({
     onCommit: (val: string) => void
     onCancel: () => void
 }) {
+    const { t } = useLocale()
     const [value, setValue] = useState(initialValue)
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -52,6 +53,7 @@ function RenameInput({
             }}
             onClick={(e) => e.stopPropagation()}
             maxLength={80}
+            aria-label={t('chat.rename' as any) as string}
         />
     )
 }
