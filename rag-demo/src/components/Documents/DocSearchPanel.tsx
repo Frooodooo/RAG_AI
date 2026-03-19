@@ -86,6 +86,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder='Search keywords, phrases, or FTS5 expressions like "budget AND 2024"'
+          aria-label={t('docs.search_keywords' as any) as string}
           style={{
             flex: 1, padding: '7px 12px', borderRadius: 'var(--r-sm)', fontSize: '13px',
             background: 'var(--bg-1)', border: '1px solid var(--b1)',
