@@ -20,10 +20,12 @@ function RenameInput({
     initialValue,
     onCommit,
     onCancel,
+    ariaLabel,
 }: {
     initialValue: string
     onCommit: (val: string) => void
     onCancel: () => void
+    ariaLabel: string
 }) {
     const [value, setValue] = useState(initialValue)
     const inputRef = useRef<HTMLInputElement>(null)
@@ -42,6 +44,7 @@ function RenameInput({
     return (
         <input
             ref={inputRef}
+            aria-label={ariaLabel}
             className="session-rename-input"
             value={value}
             onChange={(e) => setValue(e.target.value)}
@@ -148,6 +151,7 @@ const SessionItem = memo(function SessionItem({
                 {isRenaming ? (
                     <RenameInput
                         initialValue={session.title}
+                        ariaLabel={t('chat.rename' as any) as string}
                         onCommit={(val) => {
                             onRename(session.id, val)
                             setIsRenaming(false)
