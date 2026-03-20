@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - React Hook Rules in Conditional Rendering
+**Learning:** Passing the `t` translation function (derived from `useLocale()`) as a prop down to mapped list items (like `DocumentRow` inside `DocumentList`) is safer than calling `useLocale()` directly inside a memoized sub-component, to avoid potential hook ordering issues or excessive re-renders.
+**Action:** When child components need translation access inside a `.map()`, pass the parent's `t` function down via props and type it as `t: (key: any) => string` to bypass strict TypeScript key typing.
