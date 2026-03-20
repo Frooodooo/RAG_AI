@@ -9,3 +9,7 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2025-02-28 - React Flow State Updates
+**Learning:** In `WorkflowVisualizer`, mapping over React Flow nodes and returning a new object reference for every node on every status update circumvents React Flow's internal memoization. This causes the entire graph of nodes to needlessly re-render on every poll tick, even if only a single node's status changed.
+**Action:** When updating node arrays in React Flow based on external polling or status checks, implement an early return inside the `map` callback to explicitly preserve and return the original node object reference if its specific data (like `status`) has not actually changed.
