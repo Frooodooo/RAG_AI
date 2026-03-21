@@ -122,9 +122,6 @@ function ChatMessage({ message }: { message: Message }) {
   const isUser = message.role === 'user'
   const [copied, setCopied] = useState(false)
 
-  // Move useMemo to the top level to obey rules of hooks
-  const renderedContent = useMemo(() => isUser ? null : renderMarkdown(message.content), [isUser, message.content])
-
   const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   const handleCopy = () => {
@@ -174,6 +171,9 @@ function ChatMessage({ message }: { message: Message }) {
   }
 
   /* ── AI message ── */
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const renderedContent = useMemo(() => renderMarkdown(message.content), [message.content])
+
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">
       {/* Avatar */}
