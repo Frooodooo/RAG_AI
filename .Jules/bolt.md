@@ -9,3 +9,6 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+## 2025-02-04 - React.lazy for Heavy Dependencies
+**Learning:** The ReactFlow dependency (inside `WorkflowVisualizer`) was unnecessarily increasing the initial bundle size of the frontend app, resulting in a 600kB minified main chunk.
+**Action:** Use `React.lazy()` and `<Suspense>` to split large, non-critical components (like the workflow visualizer) into separate chunks, improving initial load performance.
