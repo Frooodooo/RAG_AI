@@ -88,6 +88,9 @@ function StatusBadge({ status }: { status: string }) {
   return <span style={{ fontSize: '11px', color: 'var(--t3)' }}>{status}</span>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TranslationFunction = (key: any) => string
+
 interface DocumentRowProps {
   doc: ApiDocument
   isDeleting: boolean
@@ -95,9 +98,10 @@ interface DocumentRowProps {
   isLast: boolean
   onDelete: (id: string, e: React.MouseEvent) => void
   onDownload: (id: string, filename: string, e: React.MouseEvent) => void
+  t: TranslationFunction
 }
 
-const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, isLast, onDelete, onDownload }: DocumentRowProps) {
+const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, isLast, onDelete, onDownload, t }: DocumentRowProps) {
   const ext = doc.filename.split('.').pop()?.toLowerCase() || 'txt'
   const colors = EXT_COLORS[ext] || EXT_COLORS.document
 
@@ -171,11 +175,13 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
       </div>
 
       {/* Download */}
+      {/* eslint-disable @typescript-eslint/no-explicit-any */}
       <button
         onClick={(e) => onDownload(doc.id, doc.filename, e)}
         disabled={isDownloading}
-        title={isDownloading ? 'Downloading…' : 'Download document'}
-        className="hover:bg-[rgba(255,255,255,0.05)] transition-all duration-[140ms]"
+        title={isDownloading ? (t('docs.downloading' as any) as string) : (t('docs.download' as any) as string)}
+        aria-label={isDownloading ? (t('docs.downloading' as any) as string) : (t('docs.download' as any) as string)}
+        className="hover:bg-[rgba(255,255,255,0.05)] transition-all duration-[140ms] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
           background: 'transparent', border: '1px solid transparent',
@@ -202,8 +208,9 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
       <button
         onClick={(e) => onDelete(doc.id, e)}
         disabled={isDeleting}
-        title="Remove document"
-        className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms]"
+        title={isDeleting ? (t('docs.removing' as any) as string) : (t('docs.remove' as any) as string)}
+        aria-label={isDeleting ? (t('docs.removing' as any) as string) : (t('docs.remove' as any) as string)}
+        className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#f87171]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
           background: 'transparent', border: '1px solid transparent',
@@ -304,7 +311,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <span>Download failed — {downloadError}</span>
-          <button onClick={() => setDownloadError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
+          <button onClick={() => setDownloadError(null)} aria-label={t('docs.dismiss_error' as any) as string} className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#f87171] rounded-sm" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', fontSize: '16px', lineHeight: 1 }}>×</button>
         </div>
       )}
 
@@ -322,7 +329,8 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           </svg>
           <input
             type="text"
-            placeholder="Search documents..."
+            placeholder={(t('docs.search_docs' as any) as string) + '...'}
+            aria-label={t('docs.search_docs' as any) as string}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
@@ -384,6 +392,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           </div>
 
           {/* Rows */}
+          {/* eslint-enable @typescript-eslint/no-explicit-any */}
           {filteredDocs.map((doc, idx) => (
             <DocumentRow
               key={doc.id}
@@ -393,6 +402,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
               isLast={idx === filteredDocs.length - 1}
               onDelete={handleDelete}
               onDownload={handleDownload}
+              t={t as TranslationFunction}
             />
           ))}
 

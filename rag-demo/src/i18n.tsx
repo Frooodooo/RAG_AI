@@ -50,6 +50,12 @@ const translations = {
         'docs.empty': 'Nav dokumentu. Augšupielādējiet pirmo!',
         'docs.loading': 'Ielādē dokumentus…',
         'docs.search_btn': 'Meklēt',
+        'docs.search_docs': 'Meklēt dokumentus',
+        'docs.download': 'Lejupielādēt',
+        'docs.downloading': 'Lejupielādē…',
+        'docs.remove': 'Noņemt',
+        'docs.removing': 'Noņem…',
+        'docs.dismiss_error': 'Noraidīt kļūdu',
 
         // Workflow
         'wf.title': 'Kā darbojas RAG sistēma',
@@ -100,6 +106,12 @@ const translations = {
         'docs.empty': 'No documents yet. Upload your first!',
         'docs.loading': 'Loading documents…',
         'docs.search_btn': 'Search',
+        'docs.search_docs': 'Search documents',
+        'docs.download': 'Download',
+        'docs.downloading': 'Downloading…',
+        'docs.remove': 'Remove',
+        'docs.removing': 'Removing…',
+        'docs.dismiss_error': 'Dismiss error',
 
         // Workflow
         'wf.title': 'How the RAG System Works',
