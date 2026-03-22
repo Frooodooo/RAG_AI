@@ -110,6 +110,8 @@ export default function WorkflowVisualizer({
                     status = node.id === 'Webhook' ? 'running' : 'idle';
                 }
 
+                if (node.data.status === status) return node;
+
                 return { ...node, data: { ...node.data, status } };
             })
         );
