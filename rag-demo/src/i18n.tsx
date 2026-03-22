@@ -15,6 +15,10 @@ const translations = {
         'header.title': 'Rīgas pašvaldība',
         'header.subtitle': 'Vietējais AI asistents',
 
+        // Language
+        'lang.lv': 'Latviešu',
+        'lang.en': 'Angļu',
+
         // Chat
         'chat.welcome_title': 'Jautājiet jebko',
         'chat.welcome_desc': 'Varu atbildēt uz jautājumiem par jūsu augšupielādētajiem dokumentiem latviešu vai angļu valodā',
@@ -30,6 +34,7 @@ const translations = {
         'chat.starter_4': 'Kādi ir budžeta prioritātes šim gadam?',
         'chat.new_chat': 'Jauna saruna',
         'chat.clear': 'Notīrīt',
+        'chat.rename': 'Pārdēvēt sarunu',
         'chat.try_asking': 'Jautājiet',
         'chat.history_saved': 'Vēsture saglabāta lokāli',
         'chat.hint': '· Enter lai nosūtītu · Shift+Enter jaunai rindai · / lai fokusētu',
@@ -65,6 +70,10 @@ const translations = {
         'header.title': 'Riga Municipality',
         'header.subtitle': 'Local AI Assistant',
 
+        // Language
+        'lang.lv': 'Latvian',
+        'lang.en': 'English',
+
         // Chat
         'chat.welcome_title': 'Ask anything',
         'chat.welcome_desc': 'I can answer questions about your uploaded documents in Latvian or English',
@@ -80,6 +89,7 @@ const translations = {
         'chat.starter_4': 'What are the budget priorities for this year?',
         'chat.new_chat': 'New Chat',
         'chat.clear': 'Clear',
+        'chat.rename': 'Rename chat',
         'chat.try_asking': 'Try asking',
         'chat.history_saved': 'History saved locally',
         'chat.hint': '· Enter to send · Shift+Enter for newline · / to focus',
