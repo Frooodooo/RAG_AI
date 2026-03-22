@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - WCAG 2.5.3 Label in Name for Abbreviations and Contextual Buttons
+**Learning:** Screen readers need full context for abbreviations (like "lv") and contextual buttons (like a rename button showing a title). However, replacing the visible text entirely with an aria-label violates WCAG 2.5.3 Label in Name.
+**Action:** Always include the exact visible text within the `aria-label` alongside the descriptive context (e.g., `Latvian: lv` or `Rename: My Chat`) to provide full screen reader context while maintaining WCAG compliance.
