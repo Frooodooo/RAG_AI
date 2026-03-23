@@ -110,6 +110,9 @@ export default function WorkflowVisualizer({
                     status = node.id === 'Webhook' ? 'running' : 'idle';
                 }
 
+                // ⚡ Bolt: Return exact node reference if status is unchanged to preserve React Flow memoization and prevent cascading re-renders
+                if (node.data.status === status) return node;
+
                 return { ...node, data: { ...node.data, status } };
             })
         );
