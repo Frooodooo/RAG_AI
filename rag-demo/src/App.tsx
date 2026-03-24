@@ -128,6 +128,7 @@ function App() {
               <button
                 key={lang}
                 onClick={() => setLocale(lang)}
+                className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                 style={{
                   padding: '6px 10px',
                   fontSize: '13px',
@@ -203,6 +204,7 @@ function App() {
                   <button
                     key={wf}
                     onClick={() => setSelectedWorkflow(wf)}
+                    className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                     style={{
                       fontSize: '13px',
                       padding: '5px 16px',

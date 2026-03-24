@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-24 - Keyboard Focus with Inline Styles
+**Learning:** In Cosmos Dark, components with dynamic inline styles (like the Language Switcher and Workflow Selector) often lack focus states.
+**Action:** Use Tailwind's `focus-visible:outline` utilities (e.g., `focus-visible:outline-[var(--accent)]`) via the `className` prop alongside inline styles to ensure keyboard accessibility.
