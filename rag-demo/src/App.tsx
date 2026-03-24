@@ -128,6 +128,8 @@ function App() {
               <button
                 key={lang}
                 onClick={() => setLocale(lang)}
+                aria-label={lang === 'lv' ? 'Latvian: lv' : 'English: en'}
+                className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                 style={{
                   padding: '6px 10px',
                   fontSize: '13px',
