@@ -9,3 +9,7 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2026-03-25 - Async Session Persistence
+**Learning:** Synchronous `localStorage.setItem` calls inside React functional state updates (e.g., inside `setSessions(prev => {...})`) block the main thread during render. In StrictMode or during rapid updates (like typing), this causes duplicate disk I/O and noticeable UI jank.
+**Action:** Use a `useEffect` hook that depends on the state variable to perform side effects like `localStorage` synchronization after the render phase is complete.
