@@ -169,10 +169,15 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
 
       {messageCount > 0 && (
         <button
-          onClick={onClear}
+          onClick={() => {
+            if (window.confirm(t('chat.confirm_clear') as string)) {
+              onClear()
+            }
+          }}
           className="btn btn-ghost"
           style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
           title="Clear conversation"
+          aria-label={t('chat.clear') as string}
         >
           <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
           {t('chat.clear') as string}
