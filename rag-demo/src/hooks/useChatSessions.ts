@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import {
     type Message,
@@ -24,11 +24,15 @@ export function useChatSessions() {
         const loaded = loadSessions()
         if (loaded.length === 0) {
             const initial = makeSession()
-            saveSessions([initial])
             return [initial]
         }
         return loaded
     })
+
+    // ⚡ Bolt: Synchronize localStorage inside a useEffect to prevent blocking the React main thread during functional state updates.
+    useEffect(() => {
+        saveSessions(sessions)
+    }, [sessions])
 
     const [activeSessionId, setActiveSessionIdState] = useState<string>(() => {
         const loaded = loadSessions()
@@ -49,7 +53,6 @@ export function useChatSessions() {
         const session = makeSession()
         setSessions((prev) => {
             const updated = [session, ...prev]
-            saveSessions(updated)
             return updated
         })
         setActiveSessionId(session.id)
@@ -72,7 +75,6 @@ export function useChatSessions() {
                 if (updated.length === 0) {
                     updated = [makeSession()]
                 }
-                saveSessions(updated)
                 if (id === activeSessionId) {
                     setActiveSessionId(updated[0].id)
                 }
@@ -91,7 +93,6 @@ export function useChatSessions() {
                 if (s.id !== id) return s
                 return { ...s, title: trimmed, updatedAt: new Date().toISOString() }
             })
-            saveSessions(updated)
             return updated
         })
     }, [])
@@ -110,7 +111,6 @@ export function useChatSessions() {
                         : s.title
                     return { ...s, messages, title, updatedAt: new Date().toISOString() }
                 })
-                saveSessions(updated)
                 return updated
             })
         },
@@ -124,7 +124,6 @@ export function useChatSessions() {
                 if (s.id !== activeSessionId) return s
                 return { ...s, messages: [], title: 'New Chat', updatedAt: new Date().toISOString() }
             })
-            saveSessions(updated)
             return updated
         })
     }, [activeSessionId])
