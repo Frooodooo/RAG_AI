@@ -102,9 +102,10 @@ function App() {
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
-              className={`nav-btn ${activeTab === item.id ? 'active' : ''}`}
+              className={`nav-btn ${activeTab === item.id ? 'active' : ''} focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]`}
               onClick={() => setActiveTab(item.id)}
               title={t(item.labelKey as any) as string}
+              aria-label={t(item.labelKey as any) as string}
             >
               {item.icon}
               <span className="tooltip">{t(item.labelKey as any) as string}</span>
@@ -126,8 +127,9 @@ function App() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
             {(['lv', 'en'] as Locale[]).map((lang) => (
               <button
-                key={lang}
+                key={lang} className="lang-btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
                 onClick={() => setLocale(lang)}
+                aria-label={lang === 'lv' ? 'Latvian: lv' : 'English: en'}
                 style={{
                   padding: '6px 10px',
                   fontSize: '13px',
