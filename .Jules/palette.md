@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - Native Confirm Dialogs for Destructive Actions
+**Learning:** For simple destructive actions like clearing chat history, relying solely on single-click buttons is risky and leads to accidental data loss. Heavy modal libraries are often overkill for simple confirmations.
+**Action:** Use the native `window.confirm` browser API coupled with localized strings (`i18n`) for a lightweight, immediately accessible, and screen-reader-friendly confirmation flow that prevents user error without adding extra dependencies.
