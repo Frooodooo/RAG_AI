@@ -127,6 +127,7 @@ function App() {
             {(['lv', 'en'] as Locale[]).map((lang) => (
               <button
                 key={lang}
+                aria-label={lang === 'lv' ? 'Latvian: lv' : 'English: en'}
                 onClick={() => setLocale(lang)}
                 style={{
                   padding: '6px 10px',

@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - ARIA Labels for Abbreviations
+**Learning:** Language toggles or buttons containing only brief abbreviations (e.g., "LV", "EN") are inaccessible to screen reader users as they lack context and may be pronounced incorrectly.
+**Action:** When updating UI elements containing only brief abbreviations, explicitly expand the abbreviation to its full translated name in the `aria-label` while keeping the visible text to satisfy WCAG 2.5.3 'Label in Name' (e.g., `aria-label="Latvian: lv"`).
