@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-06-03 - Focus Visible on Icon Buttons
+**Learning:** Icon buttons with custom styles or `display: flex` might have `outline` obscured by other properties. Utilizing standard utility classes for outline properties ensures consistent accessibility.
+**Action:** When adding `aria-label` to icon buttons, consistently add `focus-visible:outline` to the element classes to explicitly trigger standard keyboard focus styles.
