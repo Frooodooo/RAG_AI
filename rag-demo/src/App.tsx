@@ -102,9 +102,10 @@ function App() {
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
-              className={`nav-btn ${activeTab === item.id ? 'active' : ''}`}
+              className={`nav-btn ${activeTab === item.id ? 'active' : ''} focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]`}
               onClick={() => setActiveTab(item.id)}
               title={t(item.labelKey as any) as string}
+              aria-label={t(item.labelKey as any) as string}
             >
               {item.icon}
               <span className="tooltip">{t(item.labelKey as any) as string}</span>
@@ -128,6 +129,8 @@ function App() {
               <button
                 key={lang}
                 onClick={() => setLocale(lang)}
+                className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+                aria-label={lang === 'lv' ? 'Latviešu: lv' : 'English: en'}
                 style={{
                   padding: '6px 10px',
                   fontSize: '13px',
@@ -203,6 +206,8 @@ function App() {
                   <button
                     key={wf}
                     onClick={() => setSelectedWorkflow(wf)}
+                    className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+                    aria-label={wf === 'chat' ? 'Select Chat RAG workflow' : 'Select Upload Pipeline workflow'}
                     style={{
                       fontSize: '13px',
                       padding: '5px 16px',
