@@ -9,3 +9,11 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-02-18 - Missing Type Exports in Hooks
+**Learning:** Custom hooks (like `useChatSessions`) that wrap stores often need to explicitly re-export types (`export type { ... }`) if consumer components import those types from the hook file. Relying on transitive imports works in dev but fails in `tsc -b` if not exported.
+**Action:** Always check that types used in the hook's return value or interface are exported from the hook file itself.
+
+## 2025-02-18 - Verbatim Module Syntax and SVGProps
+**Learning:** The project uses `verbatimModuleSyntax`, which requires `import type` for type-only imports like `SVGProps`.
+**Action:** Use `import type { SVGProps } from 'react'` in icon components to avoid build errors.

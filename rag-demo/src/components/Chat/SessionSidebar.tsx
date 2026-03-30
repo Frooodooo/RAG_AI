@@ -358,13 +358,15 @@ export default function SessionSidebar({
                             />
                             {search && (
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         setSearch('')
                                         searchInputRef.current?.focus()
                                     }}
                                     title="Clear search"
                                     aria-label="Clear search"
-                                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
+                                    className="flex items-center justify-center w-5 h-5 rounded-full hover:bg-[rgba(255,255,255,0.1)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent-primary)]"
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
                                     <XIcon width="10" height="10" strokeWidth="2.5" />
                                 </button>
