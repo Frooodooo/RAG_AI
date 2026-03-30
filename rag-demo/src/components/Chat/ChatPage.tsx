@@ -141,6 +141,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
               if (e.key === 'Escape') { e.preventDefault(); setIsRenaming(false); setVal(title) }
             }}
             maxLength={80}
+            aria-label={t('chat.rename') as string}
             style={{
               flex: 1, minWidth: 0, fontSize: '16px', fontWeight: 600,
               background: 'transparent', outline: 'none', color: 'var(--t1)',
@@ -150,7 +151,8 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
         ) : (
           <button
             onClick={() => setIsRenaming(true)}
-            title="Click to rename"
+            title={t('chat.rename') as string}
+            aria-label={t('chat.rename') as string}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}
           >
             <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--t1)', maxWidth: '420px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -172,7 +174,8 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
           onClick={onClear}
           className="btn btn-ghost"
           style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
-          title="Clear conversation"
+          title={t('chat.clear_chat') as string}
+          aria-label={`${t('chat.clear_chat')}: ${t('chat.clear')}`}
         >
           <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
           {t('chat.clear') as string}
