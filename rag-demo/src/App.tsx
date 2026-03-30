@@ -105,9 +105,10 @@ function App() {
               className={`nav-btn ${activeTab === item.id ? 'active' : ''}`}
               onClick={() => setActiveTab(item.id)}
               title={t(item.labelKey as any) as string}
+              aria-label={t(item.labelKey as any) as string}
             >
               {item.icon}
-              <span className="tooltip">{t(item.labelKey as any) as string}</span>
+              <span className="tooltip" aria-hidden="true">{t(item.labelKey as any) as string}</span>
             </button>
           ))}
         </div>
@@ -128,6 +129,7 @@ function App() {
               <button
                 key={lang}
                 onClick={() => setLocale(lang)}
+                aria-label={lang === 'en' ? 'English: en' : 'Latvian: lv'}
                 style={{
                   padding: '6px 10px',
                   fontSize: '13px',
