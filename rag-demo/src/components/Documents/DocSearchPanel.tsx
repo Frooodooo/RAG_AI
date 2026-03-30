@@ -99,6 +99,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
         <button
           type="submit"
           disabled={searching || !query.trim() || readyDocs.length === 0}
+          aria-label="Search"
           className="btn btn-primary"
           style={{ padding: '7px 16px', fontSize: '13px', flexShrink: 0 }}
         >

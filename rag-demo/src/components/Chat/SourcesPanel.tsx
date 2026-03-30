@@ -23,6 +23,7 @@ function SourcesPanel({ sources }: { sources: Source[] }) {
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
         aria-controls={listId}
+        aria-label="Toggle sources"
         className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)] rounded-[var(--r-sm)]"
         style={{
           display: 'flex', alignItems: 'center', gap: '6px',
