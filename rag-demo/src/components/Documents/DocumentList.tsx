@@ -98,6 +98,7 @@ interface DocumentRowProps {
 }
 
 const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, isLast, onDelete, onDownload }: DocumentRowProps) {
+  const { t } = useLocale()
   const ext = doc.filename.split('.').pop()?.toLowerCase() || 'txt'
   const colors = EXT_COLORS[ext] || EXT_COLORS.document
 
@@ -174,7 +175,8 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
       <button
         onClick={(e) => onDownload(doc.id, doc.filename, e)}
         disabled={isDownloading}
-        title={isDownloading ? 'Downloading…' : 'Download document'}
+        title={isDownloading ? 'Downloading…' : (t('docs.download') as string)}
+        aria-label={isDownloading ? 'Downloading…' : (t('docs.download') as string)}
         className="hover:bg-[rgba(255,255,255,0.05)] transition-all duration-[140ms]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
@@ -202,7 +204,8 @@ const DocumentRow = memo(function DocumentRow({ doc, isDeleting, isDownloading, 
       <button
         onClick={(e) => onDelete(doc.id, e)}
         disabled={isDeleting}
-        title="Remove document"
+        title={t('docs.delete') as string}
+        aria-label={t('docs.delete') as string}
         className="hover:bg-[rgba(248,113,113,0.12)] hover:border-[rgba(248,113,113,0.25)] hover:text-[#f87171] transition-all duration-[140ms]"
         style={{
           width: '28px', height: '28px', borderRadius: 'var(--r-sm)',
