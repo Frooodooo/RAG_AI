@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-03-20 - WCAG 2.5.3 'Label in Name' for Inline Editable Buttons
+**Learning:** When adding `aria-label` to interactive elements (like a session rename button) that already contain visible dynamic text (like the session title), the `aria-label` MUST explicitly include the exact visible text. Otherwise, it violates WCAG 2.5.3 (Label in Name), breaking speech-recognition navigation and confusing screen reader users.
+**Action:** Always interpolate the visible text into the new `aria-label` (e.g., `aria-label={`${t('action')}: ${visibleText}`}`) rather than completely overwriting the button's accessible name with just the action description.
