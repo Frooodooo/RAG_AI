@@ -341,7 +341,7 @@ export default function SessionSidebar({
                 {sessions.length > 3 && (
                     <div className="px-2 pt-2 pb-1">
                         <div
-                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
+                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg focus-within:outline focus-within:outline-2 focus-within:outline-[var(--accent)]"
                             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)' }}
                         >
                             <SearchIcon width="14" height="14" strokeWidth="2"
