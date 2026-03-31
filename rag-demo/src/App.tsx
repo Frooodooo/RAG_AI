@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { getHealth } from './api'
 import { useLocale, type Locale } from './i18n'
 import ChatPage from './components/Chat/ChatPage'
-import WorkflowVisualizer from './components/WorkflowViz/WorkflowVisualizer'
 import DocumentsPage from './components/Documents/DocumentsPage'
+
+// ⚡ Bolt: Lazy load WorkflowVisualizer to split the large @xyflow/react dependency from the main bundle.
+// This improves initial load performance of the application.
+const WorkflowVisualizer = lazy(() => import('./components/WorkflowViz/WorkflowVisualizer'))
 
 type Tab = 'chat' | 'workflow' | 'documents'
 type WorkflowType = 'chat' | 'upload'
@@ -243,11 +246,14 @@ function App() {
                 )}
               </div>
             </div>
-            <WorkflowVisualizer
-              isActive={isChatProcessing}
-              executionId={executionId}
-              workflowType={executionId ? activeWorkflow : selectedWorkflow}
-            />
+            {/* ⚡ Bolt: Provide a fallback UI while the heavy WorkflowVisualizer component chunk is being fetched */}
+            <Suspense fallback={<div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t3)' }}>Loading visualizer...</div>}>
+              <WorkflowVisualizer
+                isActive={isChatProcessing}
+                executionId={executionId}
+                workflowType={executionId ? activeWorkflow : selectedWorkflow}
+              />
+            </Suspense>
           </div>
         )}
 
