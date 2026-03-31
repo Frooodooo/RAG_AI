@@ -33,6 +33,7 @@ const translations = {
         'chat.try_asking': 'Jautājiet',
         'chat.history_saved': 'Vēsture saglabāta lokāli',
         'chat.hint': '· Enter lai nosūtītu · Shift+Enter jaunai rindai · / lai fokusētu',
+        'chat.rename': 'Pārdēvēt sarunu',
 
         // Documents
         'docs.title': 'Dokumentu pārvaldība',
@@ -50,6 +51,9 @@ const translations = {
         'docs.empty': 'Nav dokumentu. Augšupielādējiet pirmo!',
         'docs.loading': 'Ielādē dokumentus…',
         'docs.search_btn': 'Meklēt',
+        'docs.search_placeholder': 'Meklēt dokumentos...',
+        'docs.search_query': 'Meklēšanas vaicājums',
+        'docs.select_doc': 'Izvēlieties dokumentu meklēšanai',
 
         // Workflow
         'wf.title': 'Kā darbojas RAG sistēma',
@@ -83,6 +87,7 @@ const translations = {
         'chat.try_asking': 'Try asking',
         'chat.history_saved': 'History saved locally',
         'chat.hint': '· Enter to send · Shift+Enter for newline · / to focus',
+        'chat.rename': 'Rename conversation',
 
         // Documents
         'docs.title': 'Document Management',
@@ -100,6 +105,9 @@ const translations = {
         'docs.empty': 'No documents yet. Upload your first!',
         'docs.loading': 'Loading documents…',
         'docs.search_btn': 'Search',
+        'docs.search_placeholder': 'Search documents...',
+        'docs.search_query': 'Search query',
+        'docs.select_doc': 'Select document to search within',
 
         // Workflow
         'wf.title': 'How the RAG System Works',

@@ -25,6 +25,7 @@ function RenameInput({
     onCommit: (val: string) => void
     onCancel: () => void
 }) {
+    const { t } = useLocale()
     const [value, setValue] = useState(initialValue)
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -45,6 +46,7 @@ function RenameInput({
             className="session-rename-input"
             value={value}
             onChange={(e) => setValue(e.target.value)}
+            aria-label={t('chat.rename') as string}
             onBlur={commit}
             onKeyDown={(e) => {
                 if (e.key === 'Enter') { e.preventDefault(); commit() }
