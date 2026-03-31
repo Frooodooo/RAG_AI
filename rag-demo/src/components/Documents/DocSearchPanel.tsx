@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react'
 import { searchInDocs, type ApiDocument, type SearchResult } from '../../api'
+import { useLocale } from '../../i18n'
 
 interface DocSearchPanelProps {
   documents: ApiDocument[]
 }
 
 export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
+  const { t } = useLocale()
   const [query, setQuery] = useState('')
   const [selectedDoc, setSelectedDoc] = useState<string>('')
   const [results, setResults] = useState<SearchResult[]>([])
@@ -67,6 +69,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
         <select
           value={selectedDoc}
           onChange={e => setSelectedDoc(e.target.value)}
+          aria-label={t('docs.select_doc' as any) as string}
           style={{
             padding: '7px 10px', borderRadius: 'var(--r-sm)', fontSize: '12px',
             background: 'var(--bg-1)', border: '1px solid var(--b1)',
@@ -86,6 +89,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder='Search keywords, phrases, or FTS5 expressions like "budget AND 2024"'
+          aria-label={t('docs.search_query' as any) as string}
           style={{
             flex: 1, padding: '7px 12px', borderRadius: 'var(--r-sm)', fontSize: '13px',
             background: 'var(--bg-1)', border: '1px solid var(--b1)',

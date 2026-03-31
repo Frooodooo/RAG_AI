@@ -25,6 +25,7 @@ function RenameInput({
     onCommit: (val: string) => void
     onCancel: () => void
 }) {
+    const { t } = useLocale()
     const [value, setValue] = useState(initialValue)
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -44,6 +45,7 @@ function RenameInput({
             ref={inputRef}
             className="session-rename-input"
             value={value}
+            aria-label={t('chat.rename_session' as any) as string}
             onChange={(e) => setValue(e.target.value)}
             onBlur={commit}
             onKeyDown={(e) => {
@@ -352,7 +354,7 @@ export default function SessionSidebar({
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search…"
-                                aria-label="Search conversations"
+                                aria-label={t('chat.search_sessions' as any) as string}
                                 className="flex-1 bg-transparent border-none outline-none text-sm"
                                 style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}
                             />
