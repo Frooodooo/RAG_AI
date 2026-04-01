@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-19 - Missing ARIA label in inline rename inputs
+**Learning:** Inline rename `<input>` fields that replace text headings dynamically often omit `aria-label` attributes because the visible input itself is assumed to be self-explanatory to sighted users. However, for screen reader users, this results in an unlabelled input field, making it difficult to understand its purpose (e.g., "Rename conversation").
+**Action:** When implementing an inline rename feature or form inputs without a visible `<label>`, always ensure an `aria-label` attribute is added (e.g., `aria-label={t('action.rename')}`). Ensure translation dictionaries support strings specifically for these hidden labels.

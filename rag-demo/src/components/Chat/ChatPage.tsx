@@ -133,6 +133,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
         {isRenaming ? (
           <input
             ref={inputRef}
+            aria-label={t('chat.rename' as any) as string}
             value={val}
             onChange={(e) => setVal(e.target.value)}
             onBlur={commit}
