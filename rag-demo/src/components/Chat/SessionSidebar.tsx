@@ -366,7 +366,7 @@ export default function SessionSidebar({
                                     aria-label="Clear search"
                                     style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
                                 >
-                                    <XIcon width="10" height="10" strokeWidth="2.5" />
+                                    <XIcon width="10" height="10" strokeWidth="2.5" aria-hidden="true" />
                                 </button>
                             )}
                         </div>
