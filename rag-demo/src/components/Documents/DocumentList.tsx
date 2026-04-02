@@ -312,19 +312,22 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
 
       {/* Search Bar */}
       <div style={{ display: 'flex', gap: '10px' }}>
-        <div style={{
+        <div
+          className="focus-within:outline focus-within:outline-2 focus-within:outline-[var(--accent)]"
+          style={{
           flex: 1,
           background: 'var(--bg-2)', border: '1px solid var(--b1)', borderRadius: 'var(--r-lg)',
           display: 'flex', alignItems: 'center', padding: '0 12px',
           height: '40px'
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="2" style={{ marginRight: '8px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="2" style={{ marginRight: '8px' }} aria-hidden="true">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
           <input
             type="text"
             placeholder="Search documents..."
+            aria-label="Search documents"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
@@ -332,6 +335,19 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
               fontSize: '14px', width: '100%', outline: 'none'
             }}
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              title="Clear search"
+              aria-label="Clear search"
+              style={{ background: 'none', border: 'none', color: 'var(--t3)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
