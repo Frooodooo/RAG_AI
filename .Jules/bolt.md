@@ -9,3 +9,8 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2024-03-19 - Code Splitting Routes using React.lazy
+
+**Learning:** Large single-page apps can have unoptimized initial bundle sizes if non-critical routes (like workflow visualization and document upload pages) are included in the main chunk. Before applying `React.lazy`, the main bundle was `601.42 kB`.
+**Action:** Always implement code splitting using `React.lazy()` and `Suspense` for non-critical top-level routes to drastically reduce the initial bundle size (reduced the main chunk to `301.28 kB`), allowing the main application to load faster.
