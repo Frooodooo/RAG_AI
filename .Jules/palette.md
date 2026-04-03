@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - Icon-only Buttons Accessibility
+**Learning:** Icon-only buttons (like download or delete actions in lists) often rely solely on the `title` attribute for tooltips, which is insufficient for screen readers.
+**Action:** Always add explicit `aria-label` attributes to icon-only buttons to ensure full accessibility for screen-reader users.
