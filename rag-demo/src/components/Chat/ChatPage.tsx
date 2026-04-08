@@ -141,6 +141,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
               if (e.key === 'Escape') { e.preventDefault(); setIsRenaming(false); setVal(title) }
             }}
             maxLength={80}
+            aria-label="Rename chat"
             style={{
               flex: 1, minWidth: 0, fontSize: '16px', fontWeight: 600,
               background: 'transparent', outline: 'none', color: 'var(--t1)',
@@ -151,6 +152,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
           <button
             onClick={() => setIsRenaming(true)}
             title="Click to rename"
+            aria-label={`Rename chat: ${title}`}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}
           >
             <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--t1)', maxWidth: '420px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
