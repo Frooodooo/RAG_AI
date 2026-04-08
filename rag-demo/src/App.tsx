@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { getHealth } from './api'
 import { useLocale, type Locale } from './i18n'
 import ChatPage from './components/Chat/ChatPage'
-import WorkflowVisualizer from './components/WorkflowViz/WorkflowVisualizer'
 import DocumentsPage from './components/Documents/DocumentsPage'
+
+// ⚡ Bolt: Split large ReactFlow components to reduce initial bundle size
+const WorkflowVisualizer = lazy(() => import('./components/WorkflowViz/WorkflowVisualizer'))
 
 type Tab = 'chat' | 'workflow' | 'documents'
 type WorkflowType = 'chat' | 'upload'
@@ -243,11 +245,13 @@ function App() {
                 )}
               </div>
             </div>
-            <WorkflowVisualizer
-              isActive={isChatProcessing}
-              executionId={executionId}
-              workflowType={executionId ? activeWorkflow : selectedWorkflow}
-            />
+            <Suspense fallback={<div style={{ padding: 20, color: 'var(--t3)' }}>Loading workflow...</div>}>
+              <WorkflowVisualizer
+                isActive={isChatProcessing}
+                executionId={executionId}
+                workflowType={executionId ? activeWorkflow : selectedWorkflow}
+              />
+            </Suspense>
           </div>
         )}
 
