@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import {
     type Message,
@@ -44,12 +44,16 @@ export function useChatSessions() {
 
     const activeSession = sessions.find((s) => s.id === activeSessionId) ?? sessions[0] ?? makeSession()
 
+    // ⚡ Bolt: Synchronize state to localStorage via useEffect to prevent blocking the React main thread and duplicate writes during StrictMode renders.
+    useEffect(() => {
+        saveSessions(sessions)
+    }, [sessions])
+
     /** Create a new empty session and make it active. Returns its id. */
     const createSession = useCallback((): string => {
         const session = makeSession()
         setSessions((prev) => {
             const updated = [session, ...prev]
-            saveSessions(updated)
             return updated
         })
         setActiveSessionId(session.id)
@@ -72,7 +76,6 @@ export function useChatSessions() {
                 if (updated.length === 0) {
                     updated = [makeSession()]
                 }
-                saveSessions(updated)
                 if (id === activeSessionId) {
                     setActiveSessionId(updated[0].id)
                 }
@@ -91,7 +94,6 @@ export function useChatSessions() {
                 if (s.id !== id) return s
                 return { ...s, title: trimmed, updatedAt: new Date().toISOString() }
             })
-            saveSessions(updated)
             return updated
         })
     }, [])
@@ -110,7 +112,6 @@ export function useChatSessions() {
                         : s.title
                     return { ...s, messages, title, updatedAt: new Date().toISOString() }
                 })
-                saveSessions(updated)
                 return updated
             })
         },
@@ -124,7 +125,6 @@ export function useChatSessions() {
                 if (s.id !== activeSessionId) return s
                 return { ...s, messages: [], title: 'New Chat', updatedAt: new Date().toISOString() }
             })
-            saveSessions(updated)
             return updated
         })
     }, [activeSessionId])
