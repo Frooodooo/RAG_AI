@@ -110,6 +110,9 @@ export default function WorkflowVisualizer({
                     status = node.id === 'Webhook' ? 'running' : 'idle';
                 }
 
+                // ⚡ Bolt: Prevent cascading re-renders by returning the exact original node object if status hasn't changed.
+                if (node.data.status === status) return node;
+
                 return { ...node, data: { ...node.data, status } };
             })
         );
