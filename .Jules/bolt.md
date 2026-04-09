@@ -9,3 +9,7 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2024-05-25 - React Hook Conditionality and Expensive Initializations
+**Learning:** React strictly enforces hooks to be called in the exact same order in every render. However, moving an expensive `useMemo` computation (like markdown parsing) above an early return can penalize the performance of the fast path (e.g., rendering simple user messages) if not handled correctly.
+**Action:** To fix 'React Hook called conditionally' ESLint errors without losing performance optimizations (e.g., memoizing expensive functions like Markdown parsing), move the hook above early returns and use a ternary operator inside the dependency callback to conditionally execute the logic (e.g., `useMemo(() => condition ? null : heavyFunction(), [condition])`).
