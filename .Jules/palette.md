@@ -9,3 +9,6 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+## 2024-05-25 - Focus-visible on interactive elements
+**Learning:** Components like `.btn`, `.nav-btn`, and inline buttons often lack focus visible styles when they are built with inline styles or custom css instead of Tailwind. This makes them inaccessible for keyboard users navigating the app.
+**Action:** Always add `focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]` classes to interactive elements that lack focus states, especially custom button components in the css.
