@@ -128,7 +128,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
         {/* Icon */}
-        <ChatBubbleIcon width="16" height="16" stroke="var(--t-accent)" strokeWidth="2" style={{ flexShrink: 0 }} />
+        <ChatBubbleIcon width="16" height="16" stroke="var(--t-accent)" strokeWidth="2" style={{ flexShrink: 0 }} aria-hidden="true" />
 
         {isRenaming ? (
           <input
@@ -151,12 +151,13 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
           <button
             onClick={() => setIsRenaming(true)}
             title="Click to rename"
+            aria-label={t('chat.rename_conversation') !== 'chat.rename_conversation' ? t('chat.rename_conversation') as string : 'Rename conversation'}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}
           >
             <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--t1)', maxWidth: '420px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {title}
             </span>
-            <EditIcon width="14" height="14" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--t3)', opacity: 0.5, flexShrink: 0 }} />
+            <EditIcon width="14" height="14" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--t3)', opacity: 0.5, flexShrink: 0 }} aria-hidden="true" />
           </button>
         )}
 
@@ -173,8 +174,9 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
           className="btn btn-ghost"
           style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
           title="Clear conversation"
+          aria-label={t('chat.clear_conversation') !== 'chat.clear_conversation' ? t('chat.clear_conversation') as string : 'Clear conversation'}
         >
-          <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
+          <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" aria-hidden="true" />
           {t('chat.clear') as string}
         </button>
       )}
