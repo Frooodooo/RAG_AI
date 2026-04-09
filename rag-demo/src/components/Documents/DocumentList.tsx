@@ -325,6 +325,7 @@ export default function DocumentList({ documents, loading, onDelete }: DocumentL
           <input
             type="text"
             placeholder="Search documents..."
+            aria-label="Search documents list"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
