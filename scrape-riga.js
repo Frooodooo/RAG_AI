@@ -186,6 +186,7 @@ async function crawlNews() {
 
     const $ = cheerio.load(html);
     const articles = [];
+    const seenUrls = new Set(); // ⚡ Bolt: O(1) lookup for unique URLs
 
     // Select news items (adjust selector based on actual site structure)
     // Looking for generic article placeholders or links in the main content area
@@ -194,7 +195,9 @@ async function crawlNews() {
         const title = $(el).text().trim();
         if (href && title && title.length > 20) { // Avoid 'Learn more' links
             const fullUrl = href.startsWith('http') ? href : baseUrl + href;
-            if (!articles.find(a => a.url === fullUrl)) {
+            // ⚡ Bolt: Use Set.has instead of Array.prototype.find to avoid O(N^2) complexity
+            if (!seenUrls.has(fullUrl)) {
+                seenUrls.add(fullUrl);
                 articles.push({ url: fullUrl, title });
             }
         }

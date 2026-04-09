@@ -9,3 +9,7 @@
 ## 2024-05-24 - Cascading Re-renders in React Polling Hooks
 **Learning:** When a custom hook polls an external API (like n8n execution status) and calls `setState` with structurally equivalent but referentially distinct objects (e.g., new `Set` instances for done/error nodes), it bypasses React's default equality checks. This forces the entire consumer component tree (e.g., `WorkflowVisualizer`) to re-render on every poll interval, severely degrading frontend performance.
 **Action:** In React polling hooks, implement structural equality checks (e.g., deep comparing `Set` items using a helper) before executing `setState` to prevent unnecessary state updates from failing React's equality checks and causing cascading re-renders.
+
+## 2026-03-20 - O(1) Set Lookup vs O(N) Array.find
+**Learning:** In web crawlers or data ingestion scripts, using `Array.prototype.find` inside a loop for duplicate tracking creates a hidden `O(N^2)` bottleneck that scales poorly as the array grows.
+**Action:** Always use a `Set` to track unique items (e.g. URLs) during loops to maintain `O(1)` lookup time and `O(N)` overall complexity.
