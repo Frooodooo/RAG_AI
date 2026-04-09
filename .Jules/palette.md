@@ -9,3 +9,6 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+## 2026-03-16 - Adding ARIA labels to dynamically named buttons requires localization
+**Learning:** When adding `aria-label` to a button that already contains visible text (like the 'Rename conversation' button showing the actual chat title), the `aria-label` must explicitly include that visible text. If it doesn't, it creates a WCAG 2.5.3 'Label in Name' violation, breaking voice dictation and confusing screen reader users. Additionally, all new accessibility strings must use the app's `t()` translation function to maintain i18n support, rather than hardcoding English.
+**Action:** Always include the dynamic visible text inside the new `aria-label` (e.g., `aria-label={`${t('action')}: ${title}`}`) and always define new translation keys in the i18n configuration.
