@@ -42,6 +42,7 @@ function RenameInput({
     return (
         <input
             ref={inputRef}
+            aria-label="Rename conversation"
             className="session-rename-input"
             value={value}
             onChange={(e) => setValue(e.target.value)}
