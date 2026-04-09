@@ -92,8 +92,9 @@ export default function WorkflowVisualizer({
 
     // Map execution state → node status
     useEffect(() => {
-        setNodes(nds =>
-            nds.map(node => {
+        setNodes(nds => {
+            let changed = false;
+            const newNodes = nds.map(node => {
                 let status: NodeExecStatus = 'idle';
 
                 if (executionId) {
@@ -110,9 +111,16 @@ export default function WorkflowVisualizer({
                     status = node.id === 'Webhook' ? 'running' : 'idle';
                 }
 
+                // ⚡ Bolt: Preserve exact object reference if status hasn't changed.
+                // React Flow relies on object identity for internal memoization.
+                // Recreating unchanged nodes causes cascading re-renders across the canvas.
+                if (node.data.status === status) return node;
+
+                changed = true;
                 return { ...node, data: { ...node.data, status } };
-            })
-        );
+            });
+            return changed ? newNodes : nds;
+        });
     }, [execState, executionId, isActive, setNodes]);
 
     const wfLabel = workflowType === 'upload'
