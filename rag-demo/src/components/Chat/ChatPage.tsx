@@ -65,7 +65,11 @@ export default function ChatPage({ onProcessingChange, onExecution }: ChatPagePr
         <ChatHeader
           title={activeSession?.title ?? (t('chat.new_chat') as string)}
           messageCount={messages.length}
-          onClear={clearSession}
+          onClear={() => {
+            if (window.confirm(t('chat.clear_confirm') as string)) {
+              clearSession()
+            }
+          }}
           onRename={(title) => renameSession(activeSessionId, title)}
           t={t}
         />
