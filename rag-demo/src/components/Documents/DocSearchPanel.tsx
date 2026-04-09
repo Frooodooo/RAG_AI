@@ -65,6 +65,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
       <form onSubmit={handleSearch} style={{ padding: '14px 16px', display: 'flex', gap: '8px' }}>
         {/* Doc filter */}
         <select
+          aria-label="Select document to filter by"
           value={selectedDoc}
           onChange={e => setSelectedDoc(e.target.value)}
           style={{
@@ -82,6 +83,7 @@ export default function DocSearchPanel({ documents }: DocSearchPanelProps) {
 
         {/* Query input */}
         <input
+          aria-label="Search keywords or FTS5 expressions"
           ref={inputRef}
           value={query}
           onChange={e => setQuery(e.target.value)}
