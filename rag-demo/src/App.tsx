@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { getHealth } from './api'
 import { useLocale, type Locale } from './i18n'
 import ChatPage from './components/Chat/ChatPage'
-import WorkflowVisualizer from './components/WorkflowViz/WorkflowVisualizer'
-import DocumentsPage from './components/Documents/DocumentsPage'
+
+// ⚡ Bolt: Code split heavy components (React Flow, Dropzone, Table) to reduce main bundle size
+const WorkflowVisualizer = lazy(() => import('./components/WorkflowViz/WorkflowVisualizer'))
+const DocumentsPage = lazy(() => import('./components/Documents/DocumentsPage'))
 
 type Tab = 'chat' | 'workflow' | 'documents'
 type WorkflowType = 'chat' | 'upload'
@@ -243,15 +245,21 @@ function App() {
                 )}
               </div>
             </div>
-            <WorkflowVisualizer
-              isActive={isChatProcessing}
-              executionId={executionId}
-              workflowType={executionId ? activeWorkflow : selectedWorkflow}
-            />
+            <Suspense fallback={<div style={{ padding: '20px', color: '#4a5578', textAlign: 'center' }}>{t('docs.loading' as any) as string}</div>}>
+              <WorkflowVisualizer
+                isActive={isChatProcessing}
+                executionId={executionId}
+                workflowType={executionId ? activeWorkflow : selectedWorkflow}
+              />
+            </Suspense>
           </div>
         )}
 
-        {activeTab === 'documents' && <DocumentsPage onExecution={handleUploadExecution} />}
+        {activeTab === 'documents' && (
+          <Suspense fallback={<div style={{ padding: '20px', color: '#4a5578', textAlign: 'center' }}>{t('docs.loading' as any) as string}</div>}>
+            <DocumentsPage onExecution={handleUploadExecution} />
+          </Suspense>
+        )}
       </div>
     </div>
   )
