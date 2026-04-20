@@ -110,13 +110,33 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
   const [val, setVal] = useState(title)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const [clearPhase, setClearPhase] = useState<'idle' | 'confirm'>('idle')
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => { setVal(title) }, [title])
   useEffect(() => { if (isRenaming) { inputRef.current?.focus(); inputRef.current?.select() } }, [isRenaming])
+
+  useEffect(() => {
+    return () => {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current)
+    }
+  }, [])
 
   const commit = () => {
     const trimmed = val.trim()
     if (trimmed && trimmed !== title) onRename(trimmed)
     setIsRenaming(false)
+  }
+
+  const handleClearClick = () => {
+    if (clearPhase === 'confirm') {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current)
+      setClearPhase('idle')
+      onClear()
+    } else {
+      setClearPhase('confirm')
+      clearTimerRef.current = setTimeout(() => setClearPhase('idle'), 3000)
+    }
   }
 
   return (
@@ -169,13 +189,23 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
 
       {messageCount > 0 && (
         <button
-          onClick={onClear}
-          className="btn btn-ghost"
-          style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
-          title="Clear conversation"
+          onClick={handleClearClick}
+          className="btn btn-ghost transition-all duration-150 ease-[var(--ease)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+          style={{
+            fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0,
+            background: clearPhase === 'confirm' ? 'var(--red-dim)' : 'transparent',
+            color: clearPhase === 'confirm' ? 'var(--red)' : 'var(--t2)',
+            borderColor: clearPhase === 'confirm' ? 'rgba(248, 113, 113, 0.25)' : 'transparent',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+          }}
+          title={clearPhase === 'confirm' ? "Confirm clear" : "Clear conversation"}
+          aria-label={clearPhase === 'confirm' ? "Confirm clear conversation" : "Clear conversation"}
         >
           <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
-          {t('chat.clear') as string}
+          {clearPhase === 'confirm'
+            ? (t('chat.confirm') !== 'chat.confirm' ? t('chat.confirm') as string : 'Confirm')
+            : t('chat.clear') as string}
         </button>
       )}
     </div>
