@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import {
     type Message,
@@ -42,6 +42,12 @@ export function useChatSessions() {
         localStorage.setItem(ACTIVE_KEY, id)
     }, [])
 
+    // Track activeSessionId in a ref to avoid dependency in callbacks (especially deleteSession)
+    const activeSessionIdRef = useRef(activeSessionId)
+    useEffect(() => {
+        activeSessionIdRef.current = activeSessionId
+    }, [activeSessionId])
+
     const activeSession = sessions.find((s) => s.id === activeSessionId) ?? sessions[0] ?? makeSession()
 
     /** Create a new empty session and make it active. Returns its id. */
@@ -73,13 +79,14 @@ export function useChatSessions() {
                     updated = [makeSession()]
                 }
                 saveSessions(updated)
-                if (id === activeSessionId) {
+                // Use ref to check active status without adding activeSessionId dependency
+                if (id === activeSessionIdRef.current) {
                     setActiveSessionId(updated[0].id)
                 }
                 return updated
             })
         },
-        [activeSessionId, setActiveSessionId]
+        [setActiveSessionId]
     )
 
     /** Rename a session */
