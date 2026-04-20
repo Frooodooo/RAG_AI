@@ -128,6 +128,12 @@ function ChatMessage({ message }: { message: Message }) {
     navigator.clipboard.writeText(message.content).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
+  /* ── AI message ── */
+  const renderedContent = useMemo(() => {
+    if (isUser) return null
+    return renderMarkdown(message.content)
+  }, [message.content, isUser])
+
   /* ── User message ── */
   if (isUser) {
     return (
@@ -150,7 +156,7 @@ function ChatMessage({ message }: { message: Message }) {
             <span style={{ fontSize: '13px', color: 'var(--t3)', opacity: 0.7 }}>{time}</span>
             <button
               onClick={handleCopy}
-              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 hover:bg-[rgba(255,255,255,0.06)]"
+              className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)] transition-all duration-150 hover:bg-[rgba(255,255,255,0.06)]"
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 fontSize: '11px', padding: '2px 6px', borderRadius: 'var(--r-xs)',
@@ -169,9 +175,6 @@ function ChatMessage({ message }: { message: Message }) {
       </div>
     )
   }
-
-  /* ── AI message ── */
-  const renderedContent = useMemo(() => renderMarkdown(message.content), [message.content])
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px', width: '100%' }} className="group">
@@ -198,7 +201,7 @@ function ChatMessage({ message }: { message: Message }) {
           <span style={{ fontSize: '13px', color: 'var(--t3)', opacity: 0.6 }}>{time}</span>
           <button
             onClick={handleCopy}
-            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 hover:bg-[rgba(255,255,255,0.05)]"
+            className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)] transition-all duration-150 hover:bg-[rgba(255,255,255,0.05)]"
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               fontSize: '11px', padding: '2px 6px', borderRadius: 'var(--r-xs)',
