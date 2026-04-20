@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import {
     type Message,
@@ -24,7 +24,10 @@ export function useChatSessions() {
         const loaded = loadSessions()
         if (loaded.length === 0) {
             const initial = makeSession()
-            saveSessions([initial])
+            // Initial save handled by effect or manual call here?
+            // If we don't save here, the effect will run on mount and save it.
+            // But effect runs after paint.
+            // It's safer to let effect handle all saving to avoid duplication.
             return [initial]
         }
         return loaded
@@ -42,6 +45,21 @@ export function useChatSessions() {
         localStorage.setItem(ACTIVE_KEY, id)
     }, [])
 
+    // ── Persistence Effect ────────────────────────────────────────────────────────
+    // Save sessions whenever they change. Moving this out of the render loop (updater)
+    // prevents blocking the main thread with synchronous JSON serialization.
+    useEffect(() => {
+        saveSessions(sessions)
+    }, [sessions])
+
+    // ── Validation Effect ─────────────────────────────────────────────────────────
+    // Ensure activeSessionId is valid. If the active session is deleted, switch to the first available.
+    useEffect(() => {
+        if (sessions.length > 0 && !sessions.find((s) => s.id === activeSessionId)) {
+            setActiveSessionId(sessions[0].id)
+        }
+    }, [sessions, activeSessionId, setActiveSessionId])
+
     const activeSession = sessions.find((s) => s.id === activeSessionId) ?? sessions[0] ?? makeSession()
 
     /** Create a new empty session and make it active. Returns its id. */
@@ -49,7 +67,6 @@ export function useChatSessions() {
         const session = makeSession()
         setSessions((prev) => {
             const updated = [session, ...prev]
-            saveSessions(updated)
             return updated
         })
         setActiveSessionId(session.id)
@@ -72,14 +89,12 @@ export function useChatSessions() {
                 if (updated.length === 0) {
                     updated = [makeSession()]
                 }
-                saveSessions(updated)
-                if (id === activeSessionId) {
-                    setActiveSessionId(updated[0].id)
-                }
+                // No side effects here!
+                // activeSessionId update is handled by the validation effect.
                 return updated
             })
         },
-        [activeSessionId, setActiveSessionId]
+        [] // Stable callback! No dependencies.
     )
 
     /** Rename a session */
@@ -91,7 +106,6 @@ export function useChatSessions() {
                 if (s.id !== id) return s
                 return { ...s, title: trimmed, updatedAt: new Date().toISOString() }
             })
-            saveSessions(updated)
             return updated
         })
     }, [])
@@ -110,7 +124,6 @@ export function useChatSessions() {
                         : s.title
                     return { ...s, messages, title, updatedAt: new Date().toISOString() }
                 })
-                saveSessions(updated)
                 return updated
             })
         },
@@ -124,7 +137,6 @@ export function useChatSessions() {
                 if (s.id !== activeSessionId) return s
                 return { ...s, messages: [], title: 'New Chat', updatedAt: new Date().toISOString() }
             })
-            saveSessions(updated)
             return updated
         })
     }, [activeSessionId])
