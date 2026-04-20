@@ -1,0 +1,3 @@
+## 2024-05-22 - [Sidebar Memoization Invalidation]
+**Learning:** `React.memo` on list items (`SessionItem`) was rendered useless because the parent `SessionSidebar` passed a `deleteSession` callback that was recreated every time `activeSessionId` changed. This meant switching sessions (a frequent action) triggered a full sidebar re-render (O(N)) instead of just updating the active state (O(1)).
+**Action:** When optimizing lists, always check that the callbacks passed to memoized items are stable. Use `useRef` to break dependency chains for callbacks that only need the *current* value of a state during execution.
