@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2025-02-28 - Destructive Action Confirmation in Cosmos Dark
+**Learning:** Destructive actions like "Clear Conversation" can easily wipe out significant user context if triggered accidentally. The 'Cosmos Dark' design system effectively utilizes a "double-tap" confirmation pattern.
+**Action:** When implementing destructive single-click buttons, always add a timed confirmation state. Use `var(--red-dim)` background and `var(--red)` text/border to clearly signal the danger of the second click.
