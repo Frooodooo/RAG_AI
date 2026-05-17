@@ -151,6 +151,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
           <button
             onClick={() => setIsRenaming(true)}
             title="Click to rename"
+            aria-label="Rename conversation"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}
           >
             <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--t1)', maxWidth: '420px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -173,6 +174,7 @@ function ChatHeader({ title, messageCount, onClear, onRename, t }: {
           className="btn btn-ghost"
           style={{ fontSize: '14px', padding: '6px 14px', marginLeft: '12px', flexShrink: 0 }}
           title="Clear conversation"
+          aria-label="Clear conversation"
         >
           <TrashIcon width="14" height="14" stroke="currentColor" strokeWidth="2" />
           {t('chat.clear') as string}

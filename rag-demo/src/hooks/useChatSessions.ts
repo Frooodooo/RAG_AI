@@ -19,6 +19,7 @@ function makeSession(): ChatSession {
     }
 }
 
+export type { Message, ChatSession } from './chatSessionStore';
 export function useChatSessions() {
     const [sessions, setSessions] = useState<ChatSession[]>(() => {
         const loaded = loadSessions()

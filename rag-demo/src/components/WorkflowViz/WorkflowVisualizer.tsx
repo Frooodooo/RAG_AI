@@ -75,14 +75,14 @@ export default function WorkflowVisualizer({
     const { t } = useLocale();
 
     const wfData = workflowType === 'upload' ? uploadWorkflow : chatWorkflow;
-    const { nodes: initNodes, edges: initEdges } = useMemo(() => buildGraph(wfData), [wfData]);
+    const { nodes: initNodes, edges: initEdges } = useMemo(() => buildGraph(wfData as any), [wfData]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges);
 
     // Re-init graph when workflow type switches
     useEffect(() => {
-        const { nodes: n, edges: e } = buildGraph(wfData);
+        const { nodes: n, edges: e } = buildGraph(wfData as any);
         setNodes(n);
         setEdges(e);
     // eslint-disable-next-line react-hooks/exhaustive-deps
