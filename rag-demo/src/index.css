@@ -189,9 +189,15 @@ body {
   transition: background var(--tf) var(--ease), color var(--tf) var(--ease), box-shadow var(--tf) var(--ease);
 }
 
-.nav-btn:hover {
+.nav-btn:hover,
+.nav-btn:focus-visible {
   background: var(--bg-hover);
   color: var(--t2);
+  outline: none;
+}
+
+.nav-btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-ring);
 }
 
 .nav-btn.active {
@@ -221,7 +227,8 @@ body {
   font-family: var(--font);
 }
 
-.nav-btn:hover .tooltip {
+.nav-btn:hover .tooltip,
+.nav-btn:focus-visible .tooltip {
   opacity: 1;
 }
 

@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - Navigation Rail Keyboard Accessibility
+**Learning:** Icon-only navigation buttons with CSS-only tooltips (`:hover`) leave keyboard users guessing about the button's purpose.
+**Action:** Enhance tooltip selectors to include `.nav-btn:focus-visible .tooltip` alongside `:hover`, ensuring tooltips are revealed when the button receives keyboard focus.
