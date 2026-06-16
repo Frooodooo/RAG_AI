@@ -9,3 +9,7 @@
 ## 2024-05-24 - Dynamic ARIA Labels on Toggle Buttons
 **Learning:** Toggle buttons that change icon/state (like sidebar collapse) must update their `aria-label` dynamically to reflect the current state, not just the action.
 **Action:** Use conditional logic for `aria-label` (e.g., `collapsed ? 'Expand' : 'Collapse'`) to ensure screen reader users know the current context, not just the static button name.
+
+## 2024-05-25 - Accessible Tooltips on Focus
+**Learning:** Custom CSS tooltips on icon-only buttons are often inaccessible to keyboard users because they rely solely on `:hover`.
+**Action:** Always include `:focus-visible` in the tooltip visibility selector (e.g., `.btn:hover .tooltip, .btn:focus-visible .tooltip`) and ensure the parent element has a clear focus indicator.
